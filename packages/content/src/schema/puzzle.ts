@@ -11,6 +11,11 @@ const PuzzleBase = z.object({
   title: z.string(),
   prompt: z.string(),
   onFailNoise: z.number().int().min(0).default(0),
+  // Logged on a wrong attempt. Elimination puzzles use per-option
+  // wrongFlavor instead; dial/sequence puzzles have one shared line.
+  wrongText: z.string().optional(),
+  // Logged on the correct attempt (the reveal moment).
+  solvedText: z.string().optional(),
 });
 
 export const EliminationPuzzleSchema = PuzzleBase.extend({

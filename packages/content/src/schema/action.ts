@@ -19,15 +19,22 @@ export interface OpenPuzzleAction {
 export interface PlaceItemAction {
   type: "placeItem";
   itemId: string;
+  successText?: string;
+  missingText?: string;
+  allPlacedText?: string;
 }
 export interface ActivateConvergenceAction {
   type: "activateConvergence";
 }
 export interface RepeatClickAction {
   type: "repeatClick";
+  counterId: string;
   timesRequired: number;
   textsByStep: string[];
   onComplete: Action[];
+}
+export interface EscapePrisonAction {
+  type: "escapePrison";
 }
 
 export type Action =
@@ -36,7 +43,8 @@ export type Action =
   | OpenPuzzleAction
   | PlaceItemAction
   | ActivateConvergenceAction
-  | RepeatClickAction;
+  | RepeatClickAction
+  | EscapePrisonAction;
 
 export const ActionSchema: z.ZodType<Action> = z.lazy(() =>
   z.discriminatedUnion("type", [
@@ -50,13 +58,21 @@ export const ActionSchema: z.ZodType<Action> = z.lazy(() =>
       setFlagAfter: z.string().optional(),
     }),
     z.object({ type: z.literal("openPuzzle"), puzzleId: z.string() }),
-    z.object({ type: z.literal("placeItem"), itemId: z.string() }),
+    z.object({
+      type: z.literal("placeItem"),
+      itemId: z.string(),
+      successText: z.string().optional(),
+      missingText: z.string().optional(),
+      allPlacedText: z.string().optional(),
+    }),
     z.object({ type: z.literal("activateConvergence") }),
     z.object({
       type: z.literal("repeatClick"),
+      counterId: z.string(),
       timesRequired: z.number().int().positive(),
       textsByStep: z.array(z.string()),
       onComplete: z.array(ActionSchema),
     }),
+    z.object({ type: z.literal("escapePrison") }),
   ]),
 );

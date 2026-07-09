@@ -1,5 +1,5 @@
 import type { Action } from "@silent-forge/content";
-import { setCurrentScene } from "../lib/sessionApi";
+import { escapePrison, placeItem, setCurrentScene } from "../lib/sessionApi";
 import { useSessionStore } from "../state/useSessionStore";
 
 export interface DispatchContext {
@@ -39,10 +39,37 @@ async function dispatchOne(action: Action, ctx: DispatchContext): Promise<void> 
       ctx.openPuzzle(action.puzzleId);
       return;
 
-    case "placeItem":
+    case "placeItem": {
+      const result = await placeItem(ctx.sessionId, action.itemId);
+      if (!result.ok) {
+        ctx.log(action.missingText ?? "You don't have that yet.", "flavor");
+      } else if (result.all_placed && action.allPlacedText) {
+        ctx.log(action.allPlacedText, "system");
+      } else if (action.successText) {
+        ctx.log(action.successText, "flavor");
+      }
+      return;
+    }
+
+    case "repeatClick": {
+      const { bumpLocalCounter, resetLocalCounter } = useSessionStore.getState();
+      const count = bumpLocalCounter(action.counterId);
+      const stepText = action.textsByStep[Math.min(count, action.textsByStep.length) - 1];
+      if (stepText) ctx.log(stepText, count >= action.timesRequired ? "system" : "flavor");
+      if (count >= action.timesRequired) {
+        resetLocalCounter(action.counterId);
+        await dispatchActions(action.onComplete, ctx);
+      }
+      return;
+    }
+
+    case "escapePrison":
+      // Scene change + party noise reset arrive via realtime; nothing local.
+      await escapePrison(ctx.sessionId);
+      return;
+
     case "activateConvergence":
-    case "repeatClick":
-      // Vault/Spire/Prison -- Phase 2/3, not built yet.
+      // Spire/convergence -- Phase 3, not built yet.
       ctx.log("Nothing happens yet -- this part of the quest isn't built.", "flavor");
       return;
   }
