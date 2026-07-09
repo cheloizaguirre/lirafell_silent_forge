@@ -1,13 +1,17 @@
 # Silent Forge — Progress & Next Manual Steps
 
-Status as of 2026-07-09, evening. **Phase 1 (the vertical slice) is DONE and verified working end-to-end through a real browser with two simulated devices.** Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`/home/chelo/.claude/plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
+Status as of 2026-07-09, evening. **Phase 1 (the vertical slice) is DONE and verified working end-to-end through a real browser with two simulated devices.** Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
 
 ## Current state: playable locally right now
 
 ```bash
-sg docker -c "supabase start"                 # if not already running
+supabase start                                     # if not already running
 cd apps/web && npx vite --port 5173 --strictPort   # if not already running
 ```
+
+Both Arch/CachyOS and macOS are supported dev environments. If either command
+misbehaves, the per-OS quirks live in the verify skill's Environment notes —
+notably, `supabase start` needs `-x vector -x analytics` on macOS under Colima.
 
 Then open `http://localhost:5173/` in two different browsers (or one normal + one incognito window — they need separate localStorage to act as separate "devices"). Create a session as DM in one, join with the code in the other. Entrance → Workshop → Gallery all work; the Gallery elimination puzzle is fully playable and server-validated.
 
@@ -31,7 +35,7 @@ Local Supabase Studio (DB browser/table editor): `http://127.0.0.1:54323`
 
 ## What's built
 
-**Tooling installed:** Node v22.23.1, pnpm, Supabase CLI 2.109.1 (installed as a raw binary in `~/.local/bin` — the AUR `supabase-bin` package was broken, missing its companion `supabase-go` binary), Docker + user added to `docker` group, Playwright/Chromium (in `~/.cache/ms-playwright`, used for browser-based verification, see below).
+**Tooling required:** Node (≥22; verified on 22 and 26), pnpm (≥10; verified on 10 and 11), Supabase CLI 2.109.1, a container runtime, and Playwright/Chromium for browser-based verification. See [Per-OS setup](#per-os-setup) below.
 
 **Repo structure:**
 ```
@@ -64,12 +68,24 @@ Writing SQL that looks right and SQL that works are different claims. In order o
 2. **`ON CONFLICT` column shadowing.** `join_session`'s `returns table (session_id uuid)` creates an implicit PL/pgSQL variable named `session_id`, which collided with the real `players.session_id` column inside `on conflict (session_id, user_id)` — Postgres error 42702, "ambiguous column reference." Fixed with the `#variable_conflict use_column` pragma (the standard Postgres fix for this exact class of bug).
 3. **Empty realtime publication.** The big one — found only by actually driving two browser tabs with Playwright, not by curl-testing the RPCs (which all passed). `supabase_realtime` had zero tables in it by default. RLS/grants were fine, the WebSocket subscription reported `SUBSCRIBED` with no errors, and it just never delivered a single row-change event, silently, forever. Full writeup + the psql command to check this in `.claude/skills/verify/SKILL.md`.
 
-**Other environment notes:**
-- `corepack` wasn't available even after Node install on this Arch/CachyOS box — used `sudo pacman -S pnpm` directly.
-- `pnpm-workspace.yaml` needed `allowBuilds.esbuild: true` manually (pnpm 10+ blocks postinstall scripts by default).
-- Docker needed `sudo systemctl enable --now docker` + `sudo usermod -aG docker $USER`; new shells need the group membership, already-open shells need `sg docker -c "..."` as a workaround.
-- `playwright install --with-deps` fails here (shells out to `apt`, this is Arch-based) — just `playwright install chromium` (no `--with-deps`) worked fine, system libraries were already present.
-- An early `pnpm create vite@latest --version` accidentally scaffolded a throwaway `vite-project/` at the repo root (the `--version` flag didn't short-circuit as expected) — cleaned up before it got committed to anything.
+## Per-OS setup
+
+Both environments are supported and both have been bootstrapped from scratch. After the OS-specific steps below, the rest is identical: `pnpm install`, then `supabase start`, then `cd apps/web && npx vite --port 5173 --strictPort`. Create `apps/web/.env.local` from `.env.local.example` using the anon key `supabase start` prints.
+
+**Applies to both:**
+- `pnpm-workspace.yaml` needs `allowBuilds.esbuild: true` (pnpm 10+ blocks postinstall scripts by default). Already committed — just don't remove it.
+- `playwright install --with-deps` shells out to `apt`, so skip `--with-deps` on both. Plain `playwright install chromium` works; system libraries are already present.
+
+**Arch / CachyOS:**
+- `corepack` wasn't available even after installing Node — use `sudo pacman -S pnpm` directly.
+- Supabase CLI: install as a raw binary into `~/.local/bin`. The AUR `supabase-bin` package was broken, missing its companion `supabase-go` binary.
+- Docker: `sudo systemctl enable --now docker` + `sudo usermod -aG docker $USER`. New shells pick up the group; already-open shells need `sg docker -c "..."` as a workaround.
+
+**macOS (Apple Silicon, via Homebrew):**
+- `brew install node pnpm supabase/tap/supabase docker colima`, then `colima start --cpu 4 --memory 8`. Docker Desktop or OrbStack work too, in which case skip `colima`.
+- Under Colima, plain `supabase start` fails: the `vector` log-collector container bind-mounts the docker socket, which Colima's host-side socket doesn't support. Migrations apply cleanly first — only the container start fails. Use `supabase start -x vector -x analytics` (you lose only Studio's log viewer), or symlink the socket once with `sudo ln -sf ~/.colima/default/docker.sock /var/run/docker.sock` so plain `supabase start` works.
+
+**Historical note:** an early `pnpm create vite@latest --version` accidentally scaffolded a throwaway `vite-project/` at the repo root (the `--version` flag didn't short-circuit as expected) — cleaned up before it got committed to anything.
 
 ## Full remaining roadmap (Phases 2–5)
 
@@ -77,13 +93,15 @@ See the plan file for full detail — summary:
 - **Phase 2:** remaining Stage 1 content — `NumericDialPuzzle` (Workshop valves, target `[2,0,1,3]`), `OrderedSequencePuzzle` (Archive books, target `['violet','ash','ember']`), Vault item-placement, Prison Cell. Design call already made and flagged: on noise hitting 100, only the player whose action caused it gets sent to Prison (simplest defensible per-device reading of "the party gets caught").
 - **Phase 3:** Stage 2 convergence — Spire arm/vent/align flags, the real multi-device stress test (3 devices in 3 rooms simultaneously, a 4th watching the Vault objective update live).
 - **Phase 4:** DM console override actions — force-scene/clear-noise/grant-item RPCs, role-gated (the read-only view already built is the foundation these attach to).
-- **Phase 5:** hardening — realtime reconnect reconciliation (partially done — `useSessionState` re-fetches on every `SUBSCRIBED` event already), responsive/mobile layout pass.
+- **Phase 5:** hardening — realtime reconnect reconciliation (partially done — `useSessionState` re-fetches on every `SUBSCRIBED` event already, but that doesn't cover the **Realtime cold-start gap**: the service acks `SUBSCRIBED` before its change-feed worker is consuming, and events fired in the first seconds are lost silently — see Gotcha #0 in the verify skill, reproduced deterministically 2026-07-10. Fix idea: one extra delayed re-reconcile a few seconds after `SUBSCRIBED`, which also covers flaky-wifi reconnects on phones), responsive/mobile layout pass.
 
 Explicitly deferred beyond v1 (per user decision): commissioned art/animation, audio, telemetry, full accessibility pass, randomized/seeded puzzles, branching outcomes, expert difficulty tier.
 
 ## Reference
 
-- Approved plan: `/home/chelo/.claude/plans/this-file-contains-the-purrfect-harbor.md`
-- **Project verify skill: `.claude/skills/verify/SKILL.md`** — read this before re-verifying anything, it has the exact commands and the realtime-publication gotcha
-- PoC source of truth (not in this repo): `~/Downloads/silent_forge(1).html` (complete Stage 1+2 version — use this one, not the shorter `silent_forge.html`)
-- Original design retrospective: `silent_forge_summary.md` (this repo)
+Two of these are gitignored local reference material, not repo content — restore them by hand at the repo root when picking the project up on a new machine. `silent_forge*.html` in particular is deliberately never committed: it has every puzzle answer in plaintext, and answers must stay confined to the Supabase RPCs.
+
+- Approved plan: `plans/this-file-contains-the-purrfect-harbor.md` *(gitignored)*
+- PoC source of truth: `silent_forge(1).html` at the repo root *(gitignored)* — the complete Stage 1+2 version, use this one, not the shorter `silent_forge.html`
+- **Project verify skill: `.claude/skills/verify/SKILL.md`** — read this before re-verifying anything; it has the exact commands, the per-OS environment notes, and the realtime-publication gotcha
+- Original design retrospective: `silent_forge_summary.md` (tracked, in this repo)

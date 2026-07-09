@@ -5,7 +5,11 @@
     "dev": "pnpm --filter @silent-forge/web dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "validate:content": "pnpm --filter @silent-forge/content validate"
+    "validate:content": "pnpm --filter @silent-forge/content validate",
+    "verify:realtime": "node scripts/verify-realtime.mjs"
   },
-  "packageManager": "pnpm@11.3.0"
+  "packageManager": "pnpm@11.3.0",
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
 }

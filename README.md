@@ -10,25 +10,34 @@ An interactive, multi-device web-based D&D subquest. Players join a shared sessi
 
 ## Prerequisites
 
-You need: **Node.js 20+**, **pnpm**, **Docker**, and the **Supabase CLI**. Setup differs slightly by OS.
+You need: **Node.js 22+** (verified on 22 and 26), **pnpm 10+** (verified on 10 and 11), a **container runtime**, and the **Supabase CLI**. Both macOS and Arch/CachyOS are actively used dev environments; setup differs by OS.
+
+Don't reach for `corepack enable` to get pnpm — Node stopped bundling `corepack` as of Node 25, and some distro Node packages omitted it before that. Install pnpm directly, as below.
 
 ### macOS
 
 ```bash
-# Node (via Homebrew)
-brew install node
+brew install node pnpm supabase/tap/supabase
 
-# pnpm
-corepack enable
-corepack prepare pnpm@latest --activate
-
-# Docker Desktop
-brew install --cask docker
-# then launch Docker Desktop once from Applications so its daemon starts
-
-# Supabase CLI
-brew install supabase/tap/supabase
+# Container runtime -- pick one:
+brew install docker colima && colima start --cpu 4 --memory 8   # lightweight, CLI-only
+# brew install --cask docker    # Docker Desktop; launch it once from Applications
+# brew install --cask orbstack  # OrbStack
 ```
+
+Under **Colima**, plain `supabase start` fails: Supabase's `vector` log-collector container bind-mounts the docker socket, which Colima's host-side socket doesn't support (the error mentions `docker.sock` and `operation not supported`). Migrations apply cleanly first — only the container start fails. Either start without it:
+
+```bash
+supabase start -x vector -x analytics   # you lose only Studio's log viewer
+```
+
+or fix it once so plain `supabase start` works:
+
+```bash
+sudo ln -sf ~/.colima/default/docker.sock /var/run/docker.sock
+```
+
+Docker Desktop and OrbStack don't have this problem.
 
 ### Linux
 
@@ -38,16 +47,14 @@ sudo pacman -S nodejs-lts-jod npm        # Arch/CachyOS
 # sudo apt install nodejs npm            # Debian/Ubuntu
 
 # pnpm
-corepack enable
-corepack prepare pnpm@latest --activate
-# if `corepack` isn't found (some distro Node packages omit it), fall back to:
-#   sudo pacman -S pnpm         # Arch
-#   npm install -g pnpm         # any distro
+sudo pacman -S pnpm         # Arch
+# npm install -g pnpm       # any distro
 
 # Docker Engine
 sudo pacman -S docker              # Arch; use your distro's package manager otherwise
 sudo systemctl enable --now docker
 sudo usermod -aG docker "$USER"    # then log out/in (or `newgrp docker`) for group membership to apply
+# already-open shells can use `sg docker -c "supabase start"` as a workaround
 
 # Supabase CLI -- no official apt/dnf/pacman package; grab the release binary directly
 # (the Arch AUR package `supabase-bin` was broken as of this writing -- missing its
@@ -70,13 +77,14 @@ node --version && pnpm --version && docker --version && supabase --version
 ## Setup
 
 ```bash
-git clone <this-repo-url>
-cd lirafell_workshop
+git clone https://github.com/cheloizaguirre/lirafell_silent_forge.git
+cd lirafell_silent_forge
 pnpm install
 
 # start local Supabase (Postgres + Auth + Realtime, via Docker) --
 # first run pulls several images, can take a few minutes
 supabase start
+# on macOS + Colima this fails on the `vector` container -- see Prerequisites above
 ```
 
 `supabase start` prints an `API_URL` and `ANON_KEY` at the end. Copy the env template and fill them in:
