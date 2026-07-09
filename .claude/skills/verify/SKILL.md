@@ -32,36 +32,30 @@ cd apps/web && npx vite --port 5173 --strictPort
 `apps/web/.env.local` must point at the local stack (`VITE_SUPABASE_URL=http://127.0.0.1:54321`
 + the anon key `supabase start` printed). `.env.local.example` has the shape.
 
-## 3. Drive it with Playwright, two browser contexts
-
-Two isolated `browser.newContext()`s (not two tabs in one context) is what
-actually simulates two players on two different devices -- separate
-localStorage means separate anonymous auth identities, matching real
-multi-device play.
-
-Chromium isn't installed by default. Get just the browser binary:
+## 3. Run the committed driver
 
 ```bash
-npx --yes playwright@1.49.1 install chromium   # no --with-deps
+npx playwright install chromium   # once per machine; no --with-deps
+pnpm verify:realtime              # runs scripts/verify-realtime.mjs
 ```
+
+`playwright` is a root devDependency, so run `npx playwright install` from the
+repo root -- that downloads the browser revision matching the installed
+library version. **Never pin an old playwright version for the download**:
+stale versions point at outdated CDN paths and the download can hang
+indefinitely (burned hours on this via a pinned 1.49.1 on 2026-07-10; the
+same download via the current version took seconds).
 
 Skip `--with-deps`. Playwright only supports it on Debian/Ubuntu -- it shells
 out to `apt`, and it's a confirmed failure on Arch. Neither Arch nor macOS
 needs it anyway: the required system libraries are already present.
 
-Minimal driver shape (see conversation history / git log for a fuller
-example than this skeleton):
-
-```js
-import { chromium } from "playwright";
-const browser = await chromium.launch();
-const ctxA = await browser.newContext(); // e.g. the DM
-const ctxB = await browser.newContext(); // e.g. a player
-// pageA creates a session -> code; pageB joins via /join/<code>;
-// assert pageA's DOM reflects pageB's actions (scene, noise, inventory)
-// without pageA ever taking an action itself -- that's the actual claim
-// multi-device sync is making.
-```
+The driver uses two isolated `browser.newContext()`s (not two tabs in one
+context) -- separate localStorage means separate anonymous auth identities,
+matching real multi-device play. The DM page takes zero actions and the
+driver counts navigations on it to prove updates arrived via realtime, not
+reloads. 12 checks; screenshots land in `verify-artifacts/` (gitignored).
+Extend it in place when new scenes/puzzles need coverage.
 
 ## Gotcha #0: warm up Realtime before trusting a failed run
 

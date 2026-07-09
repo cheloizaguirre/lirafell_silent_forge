@@ -29,6 +29,7 @@ lerna-debug.log*
 
 # Test/coverage output
 coverage/
+verify-artifacts/
 
 # Supabase CLI local state -- branch pointers, migration diffing cache.
 # Never contains secrets, but it's machine-local working state, not source.
