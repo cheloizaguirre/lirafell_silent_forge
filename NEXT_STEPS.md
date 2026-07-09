@@ -17,9 +17,18 @@ Then open `http://localhost:5173/` in two different browsers (or one normal + on
 
 Local Supabase Studio (DB browser/table editor): `http://127.0.0.1:54323`
 
+## Next session: Phase 3 (Stage 2 convergence)
+
+Everything here is buildable against local Docker; no manual steps block it. Concrete pointers so the next session doesn't re-derive them:
+
+- **What it is** (approved plan, Phase 3): Spire scene + arm lever (loud: +35 noise), Workshop overflow-valve vent, Archive lens realignment, then a server-validated `activate_convergence` that re-checks `armed && vented && aligned` server-side. Acceptance test: three devices acting in three rooms simultaneously while a fourth watches the Vault objective update live — this, not the two-tab test, is the real multi-device bar.
+- **PoC reference** (`silent_forge(1).html` at repo root, gitignored): Spire scene 594–625, Workshop overflow valve 353–364 + Spire-stair hotspot 350–352 (gated on `allPlaced`), Archive lens rotate/lock 466–481, Vault convergence hotspot 562–577. Symbols array + `SPIRE_SYMBOL_INDEX = 2` (☉) at 131–132 — the alignment answer, server-side only like all answers.
+- **Existing hooks to build on:** `activateConvergence` action type exists, dispatcher stub at `apps/web/src/engine/actionDispatch.ts` says "not built yet". The lens realignment is a single-dial `numeric-dial` puzzle variant per the approved plan (schema already supports 1 dial). `dm_force_scene`/`dm_clear_noise` show the RPC patterns; `armed`/`vented`/`aligned` are ordinary `session_state.flags` set by new RPCs (arming adds 35 noise — reuse `add_noise`, which also gives the Warden alert for free). `SpireArt` needs creating + registering in `sceneRegistry.ts`; Workshop's Spire-stair and overflow-valve hotspots are flag-gated via existing `visibleWhen` conditions (WorkshopArt already renders the armed/vented/allPlaced visuals — built ahead in Phase 1).
+- **Verify:** extend `scripts/verify-realtime.mjs` with a Phase 3 leg (a third browser context for the convergence test). Remember Gotcha #0 (cold-start rerun) after any `supabase db reset`.
+
 ## What's NOT built yet (see full roadmap below)
 
-- **Phase 3 (Stage 2 convergence):** Spire scene + arm lever, Workshop overflow valve, Archive lens realignment, server-validated `activate_convergence`. The `activateConvergence` action type exists but its dispatcher is a stub.
+- **Phase 3 (Stage 2 convergence)** — see the section above.
 - DM console has its first two actions (Warden alert: force-to-prison, clear noise) — the grant-item override and a general force-scene UI are still Phase 4.
 - No hosted Supabase project yet — everything above runs against local Docker only. A phone can't reach `127.0.0.1:54321`, so real multi-device (not just multi-browser-window) testing needs a hosted project + deployment. This is the next real blocker.
 
