@@ -63,6 +63,27 @@ const ctxB = await browser.newContext(); // e.g. a player
 // multi-device sync is making.
 ```
 
+## Gotcha #0: warm up Realtime before trusting a failed run
+
+**The first postgres_changes subscription after the realtime service (re)starts
+reports `SUBSCRIBED` but silently drops events for the first few seconds** --
+the ack arrives before the change-feed worker is actually consuming. Events
+fired in that window are lost forever (no error, no late delivery); the stream
+starts working shortly after. Reproduced deterministically on 2026-07-10 by
+`docker restart supabase_realtime_lirafell_workshop`: the cold run missed a
+`players` INSERT fired ~1s after `SUBSCRIBED`, an identical run 30s later
+delivered everything within 500ms.
+
+Symptom shape: a player joins and never appears on other devices, but starts
+appearing the moment they *act* (their UPDATE arrives fine and the client
+upserts the whole row). If the two-context test fails only on "DM sees the
+new player appear," rerun it before debugging anything -- and after a fresh
+`supabase start`, either run a throwaway subscription first or just run the
+suite twice.
+
+(App-level hardening -- e.g. a delayed re-reconcile after `SUBSCRIBED` --
+is Phase 5 roadmap territory, not yet built.)
+
 ## Gotcha that will burn an hour if you don't check it first
 
 **Postgres Changes needs the table added to the `supabase_realtime`
