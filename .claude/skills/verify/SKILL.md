@@ -9,20 +9,19 @@ This is a multi-device realtime app -- a clean `tsc`/`vite build` proves nothing
 about whether two browser tabs actually see each other's state. Drive it for
 real.
 
+Arch/CachyOS and macOS are both supported dev environments. The commands below
+are the same on either; where they aren't, see [Environment notes](#environment-notes).
+
 ## 1. Start the backend
 
 ```bash
-sg docker -c "supabase start"      # first run pulls images, can take a few min
+supabase start      # first run pulls images, can take a few min
 # or, if already running:
-sg docker -c "supabase status"
+supabase status
 ```
 
-`sg docker -c "..."` is required if your shell session predates being added to
-the `docker` group -- group membership doesn't apply to already-running shells.
-A fresh shell/terminal doesn't need the wrapper.
-
-If you changed a migration: `sg docker -c "supabase db reset"` (reapplies all
-migrations from scratch, fast, local only).
+If you changed a migration: `supabase db reset` (reapplies all migrations from
+scratch, fast, local only).
 
 ## 2. Start the frontend
 
@@ -40,12 +39,15 @@ actually simulates two players on two different devices -- separate
 localStorage means separate anonymous auth identities, matching real
 multi-device play.
 
-Chromium isn't installed by default here and `--with-deps` fails (it shells
-out to `apt`, this box is Arch-based CachyOS). Get just the browser binary:
+Chromium isn't installed by default. Get just the browser binary:
 
 ```bash
 npx --yes playwright@1.49.1 install chromium   # no --with-deps
 ```
+
+Skip `--with-deps`. Playwright only supports it on Debian/Ubuntu -- it shells
+out to `apt`, and it's a confirmed failure on Arch. Neither Arch nor macOS
+needs it anyway: the required system libraries are already present.
 
 Minimal driver shape (see conversation history / git log for a fuller
 example than this skeleton):
@@ -70,7 +72,9 @@ event, forever, silently. If two-tab sync hangs, check this before anything
 else:
 
 ```bash
-sg docker -c "docker exec supabase_db_lirafell_workshop psql -U postgres -d postgres -c \"select tablename from pg_publication_tables where pubname = 'supabase_realtime';\""
+docker exec supabase_db_lirafell_workshop \
+  psql -U postgres -d postgres \
+  -c "select tablename from pg_publication_tables where pubname = 'supabase_realtime';"
 ```
 
 Should list `players` and `session_state`. If empty, the fix is
@@ -79,6 +83,35 @@ full`) in a migration -- already done in
 `supabase/migrations/20260709181557_enable_realtime.sql`, but re-check this
 first if a *new* realtime-dependent table gets added later and sync mysteriously
 doesn't work.
+
+## Environment notes
+
+Only reach for these if a command above misbehaves.
+
+**Linux (Arch/CachyOS) -- `docker` group.** If your shell session predates being
+added to the `docker` group, docker commands fail with a permission error.
+Group membership doesn't apply to already-running shells. Either open a fresh
+terminal, or wrap the command: `sg docker -c "supabase start"`.
+
+**macOS (Colima) -- `supabase start` fails on the `vector` container.** Colima's
+docker socket lives on the host filesystem, and Supabase's `vector` log
+collector tries to bind-mount it, which isn't a supported mount source. The
+error names `docker.sock` and `operation not supported`. Migrations will have
+already applied cleanly -- only the container start fails. Either skip the
+container (it's just Studio's log viewer; `analytics`/logflare depends on it,
+so exclude both):
+
+```bash
+supabase start -x vector -x analytics
+```
+
+or fix it once at the machine level so plain `supabase start` works:
+
+```bash
+sudo ln -sf ~/.colima/default/docker.sock /var/run/docker.sock
+```
+
+Docker Desktop and OrbStack don't have this problem.
 
 ## What "done" looks like
 

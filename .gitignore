@@ -35,6 +35,12 @@ coverage/
 supabase/.branches
 supabase/.temp
 
+# Local reference material -- restored per-machine, not repo content.
+# silent_forge*.html is the PoC source and has every puzzle answer in plaintext;
+# answers must stay confined to the Supabase RPCs. plans/ is the approved plan.
+/silent_forge*.html
+/plans/
+
 # Claude Code -- personal/local permission cache, not shared project config.
 # .claude/skills/ IS tracked (deliberately) -- it's project knowledge, not local state.
 .claude/settings.local.json
