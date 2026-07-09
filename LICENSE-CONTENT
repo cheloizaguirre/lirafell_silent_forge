@@ -1,0 +1,40 @@
+The Silent Forge -- Creative Content License
+
+Copyright (c) 2026 chelo
+
+This license covers the quest's creative content: the setting, story,
+character/location descriptions, room text, puzzle prompts and flavor text,
+and the overall design of "The Silent Forge" subquest -- wherever it appears
+in this repository, including but not limited to:
+
+  - silent_forge_summary.md
+  - packages/content/src/data/scenes.ts
+  - packages/content/src/data/puzzles.ts
+  - narrative/flavor strings embedded as comments or literals in
+    supabase/migrations/*.sql
+
+It does NOT cover the software (application code, schemas, build tooling,
+database structure) -- see LICENSE (MIT) for that. Where content and code
+are mixed in the same file (e.g. flavor text as a string literal inside a
+.ts or .sql file), this license applies to the narrative text itself, not
+to the surrounding code.
+
+This creative content is licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA
+4.0).
+
+You are free to:
+  - Share -- copy and redistribute the material in any medium or format
+  - Adapt -- remix, transform, and build upon the material
+    (e.g. run this quest at your own table, translate it, extend it)
+
+Under the following terms:
+  - Attribution -- You must give appropriate credit, provide a link to this
+    license, and indicate if changes were made.
+  - NonCommercial -- You may not use the material for commercial purposes.
+  - ShareAlike -- If you remix, transform, or build upon the material, you
+    must distribute your contributions under the same license as the
+    original.
+
+Full legal text: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+Human-readable summary: https://creativecommons.org/licenses/by-nc-sa/4.0/

@@ -116,3 +116,10 @@ supabase/             Postgres migrations, RLS policies, RPCs (puzzle answers li
 ## Status & roadmap
 
 See [`NEXT_STEPS.md`](NEXT_STEPS.md) for exactly what's built vs. outstanding, and the approved implementation plan for the full phased roadmap.
+
+## License
+
+This repo is dual-licensed:
+
+- **Code** (application, schemas, database migrations/tooling) — [MIT](LICENSE).
+- **Creative content** (the quest's story, room/puzzle text, flavor text — `silent_forge_summary.md`, `packages/content/src/data/`) — [CC BY-NC-SA 4.0](LICENSE-CONTENT). Run it at your table, remix it, just don't sell it, and share alike.

@@ -1,5 +1,8 @@
 import type { PuzzleContent } from "../schema/puzzle";
 
+// The puzzle prompts/flavor text below are licensed CC BY-NC-SA 4.0, not
+// MIT -- see /LICENSE-CONTENT.
+//
 // Answers are NOT here — see supabase/migrations for the RPC that validates
 // attempts server-side. `id` below is the shared key passed to
 // submit_puzzle_attempt(puzzle_id, value).

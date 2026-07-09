@@ -1,5 +1,8 @@
 import type { Scene } from "../schema/scene";
 
+// The narrative text below (room descriptions, item/scene names, flavor
+// text) is licensed CC BY-NC-SA 4.0, not MIT -- see /LICENSE-CONTENT.
+//
 // Phase 1 vertical-slice content only: Entrance (full), Workshop (navigation
 // hotspots only — the valve puzzle is Phase 2), Gallery (full, incl. the
 // elimination puzzle). Content ported verbatim (text/geometry) from the PoC

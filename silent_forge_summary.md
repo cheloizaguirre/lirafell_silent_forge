@@ -1,5 +1,7 @@
 # The Silent Forge — PoC Summary & Advancement Roadmap
 
+*The creative content in this document (setting, story, puzzle design) is licensed CC BY-NC-SA 4.0 -- see [LICENSE-CONTENT](LICENSE-CONTENT).*
+
 ## 1. Concept Overview
 
 **Setting:** The abandoned atelier of Master Artificer Brakka, a gothic arcane-tech workshop sealed for centuries.
