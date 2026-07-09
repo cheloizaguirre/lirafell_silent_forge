@@ -4,8 +4,11 @@ import { ensureAnonymousSession } from "../lib/auth";
 import { fetchOwnPlayer, fetchSessionByCode } from "../lib/sessionApi";
 import { useSessionStore } from "../state/useSessionStore";
 import { useSessionState } from "../state/useSessionState";
+import { puzzles } from "@silent-forge/content";
 import { SceneRenderer } from "../engine/SceneRenderer";
 import { EliminationPuzzle } from "../engine/puzzles/EliminationPuzzle";
+import { NumericDialPuzzle } from "../engine/puzzles/NumericDialPuzzle";
+import { OrderedSequencePuzzle } from "../engine/puzzles/OrderedSequencePuzzle";
 
 interface LogEntry {
   text: string;
@@ -56,6 +59,13 @@ export function PlayPage() {
       cancelled = true;
     };
   }, [code, navigate, setSession]);
+
+  // If our scene changes while a puzzle is open (e.g. the DM sends us to the
+  // cell mid-attempt), the modal belongs to the old room -- close it.
+  const currentSceneId = self?.current_scene_id;
+  useEffect(() => {
+    setOpenPuzzleId(null);
+  }, [currentSceneId]);
 
   const appendLog = (text: string, tone: LogEntry["tone"]) => {
     logIdRef.current += 1;
@@ -128,17 +138,31 @@ export function PlayPage() {
         </ul>
       </main>
 
-      {openPuzzleId && (
-        <EliminationPuzzle
-          puzzleId={openPuzzleId}
-          sessionId={sessionId}
-          log={appendLog}
-          onSolved={() => {
-            /* session_state updates arrive via realtime; nothing to do locally */
-          }}
-          onClose={() => setOpenPuzzleId(null)}
-        />
-      )}
+      {openPuzzleId &&
+        (() => {
+          const kind = puzzles.find((p) => p.id === openPuzzleId)?.kind;
+          const PuzzleComponent =
+            kind === "elimination"
+              ? EliminationPuzzle
+              : kind === "numeric-dial"
+                ? NumericDialPuzzle
+                : kind === "ordered-sequence"
+                  ? OrderedSequencePuzzle
+                  : null;
+          return (
+            PuzzleComponent && (
+              <PuzzleComponent
+                puzzleId={openPuzzleId}
+                sessionId={sessionId}
+                log={appendLog}
+                onSolved={() => {
+                  /* session_state updates arrive via realtime; nothing to do locally */
+                }}
+                onClose={() => setOpenPuzzleId(null)}
+              />
+            )
+          );
+        })()}
     </>
   );
 }

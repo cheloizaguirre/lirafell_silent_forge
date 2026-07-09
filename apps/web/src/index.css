@@ -276,6 +276,87 @@ main {
   font-family: "EB Garamond", serif;
 }
 
+.puzzle-dials {
+  flex-direction: row;
+  justify-content: center;
+}
+.puzzle-dial {
+  flex: 1;
+  text-align: center;
+}
+.puzzle-dial-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.puzzle-dial-value {
+  display: block;
+  font-family: "Cinzel", serif;
+  font-size: 26px;
+  color: var(--accent-bright);
+}
+.puzzle-pick-order {
+  color: var(--accent-bright);
+}
+.puzzle-sequence-status {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* The DM console's one write surface -- deliberately louder than the
+   read-only dumps around it. */
+.warden-alert {
+  background: var(--shadow2);
+  border: 1px solid #8a3a4a;
+  border-left: 4px solid #e0768a;
+  border-radius: 2px;
+  padding: 12px 14px;
+}
+.warden-alert h2 {
+  font-family: "Cinzel", serif;
+  color: #e0768a;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+}
+.warden-alert p {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.warden-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.warden-actions button {
+  background: var(--shadow2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "EB Garamond", serif;
+  font-size: 14px;
+}
+.warden-actions button:hover:not(:disabled) {
+  border-color: #e0768a;
+  color: #e0768a;
+}
+.warden-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.warden-actions .warden-offender {
+  border-color: #8a3a4a;
+  color: #e0768a;
+}
+
 .form-shell {
   max-width: 420px;
   margin: 60px auto;

@@ -59,6 +59,33 @@ export async function submitPuzzleAttempt(
   return data;
 }
 
+export async function placeItem(sessionId: string, itemId: string) {
+  const { data, error } = await supabase
+    .rpc("place_item", { p_session_id: sessionId, p_item_id: itemId })
+    .single<{ ok: boolean; all_placed?: boolean }>();
+  if (error) throw error;
+  return data;
+}
+
+export async function escapePrison(sessionId: string) {
+  const { error } = await supabase.rpc("escape_prison", { p_session_id: sessionId });
+  if (error) throw error;
+}
+
+export async function dmForceScene(sessionId: string, playerId: string, sceneId: string) {
+  const { error } = await supabase.rpc("dm_force_scene", {
+    p_session_id: sessionId,
+    p_player_id: playerId,
+    p_scene_id: sceneId,
+  });
+  if (error) throw error;
+}
+
+export async function dmClearNoise(sessionId: string) {
+  const { error } = await supabase.rpc("dm_clear_noise", { p_session_id: sessionId });
+  if (error) throw error;
+}
+
 // Finds the current auth user's existing players row across ANY active
 // session, so a reloaded tab can resume without asking for a name/code again.
 export async function findExistingPlayerRow(userId: string): Promise<PlayerRow | null> {
