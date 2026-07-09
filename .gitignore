@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Env files -- never commit real secrets/keys, even local-dev ones.
+# Tracked *.env.local.example files are the templates; keep authoring those.
+.env
+.env.*
+!.env.*.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# Test/coverage output
+coverage/
+
+# Supabase CLI local state -- branch pointers, migration diffing cache.
+# Never contains secrets, but it's machine-local working state, not source.
+supabase/.branches
+supabase/.temp
+
+# Claude Code -- personal/local permission cache, not shared project config.
+# .claude/skills/ IS tracked (deliberately) -- it's project knowledge, not local state.
+.claude/settings.local.json
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

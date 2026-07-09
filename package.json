@@ -1,0 +1,11 @@
+{
+  "name": "silent-forge",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @silent-forge/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "validate:content": "pnpm --filter @silent-forge/content validate"
+  },
+  "packageManager": "pnpm@11.3.0"
+}
