@@ -32,11 +32,14 @@ was learned by building the first six, most of it by screenshot.
    grate caption). Both need their dark backing chip — bare text drowns on
    busy art. Exception: *digits* work as 3×5 pixel glyphs (the 2-0-1-3
    engraving), and look great.
-2. **Black sprites need a non-black backdrop.** Bitten three times: the
-   grey automaton faded into the bricks (→ black+violet against slate), the
-   Warden vanished inside its black-dithered alcove (→ mortar-toned
-   interior), the black decoy tome vanished in the black shelf slot (→
-   wood-backed recess). If the sprite is dark, light the surface behind it.
+2. **Sprites need a backdrop of the opposite value — black-on-black AND
+   grey-on-grey both fail.** Bitten four times: the grey automaton faded
+   into the bricks (→ black+violet against slate), the Warden vanished
+   inside its black-dithered alcove (→ mortar-toned interior), the black
+   decoy tome vanished in the black shelf slot (→ wood-backed recess), and
+   the Gallery's steel exhibits drowned on a grey slate case backing (user
+   catch → dark mortar interior + a dithered case-light halo behind each
+   specimen). Pick the backing against the sprite's value, not the room's.
 3. **Regular checker dither moirés at this resolution.** Fine for small
    glows/halos; as a full-scene gloom it reads as woven mesh against the
    brick pattern. Use an irregular scatter instead

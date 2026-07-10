@@ -6,6 +6,7 @@ import {
   frameRect,
   ditherRect,
   disc,
+  ditherDisc,
   ring,
   set,
   blit,
@@ -35,9 +36,10 @@ function eye(buf: Buf, x: number, y: number, lit: boolean, frame: number): void 
   set(buf, x, y, lit ? (frame === 0 ? PAL.ember : PAL.flame) : PAL.steelDark);
 }
 
-// Museum display case: wood cabinet, brass studs, a glass window over a lit
-// slate backing (never dark-on-dark), a steel specimen plinth, and an
-// engraved brass nameplate.
+// Museum display case: wood cabinet, brass studs, a glass window over a dark
+// mortar-toned interior with a spotlight halo behind the specimen (the grey
+// automatons drowned on a grey slate backing -- user catch), a steel plinth,
+// and an engraved brass nameplate.
 function drawCase(buf: Buf, x: number): void {
   fillRect(buf, x + 2, 74, 2, 4, PAL.woodDark);
   fillRect(buf, x + 18, 74, 2, 4, PAL.woodDark);
@@ -46,8 +48,9 @@ function drawCase(buf: Buf, x: number): void {
   for (let dx = 1; dx < 21; dx++) set(buf, x + dx, 30, PAL.woodLight);
   set(buf, x + 1, 31, PAL.brassLight);
   set(buf, x + 20, 31, PAL.brassLight);
-  // the glass window
-  fillRect(buf, x + 2, 33, 18, 32, PAL.wallLight);
+  // the glass window: dark interior, case-light halo behind the exhibit
+  fillRect(buf, x + 2, 33, 18, 32, PAL.mortar);
+  ditherDisc(buf, x + 11, 51, 9, PAL.wallLight);
   fillRect(buf, x + 3, 61, 16, 4, PAL.steelDark);
   for (let dx = 3; dx < 19; dx++) set(buf, x + dx, 61, PAL.steel);
   // sparse diagonal glass glints
@@ -141,14 +144,14 @@ function drawCannon(buf: Buf, cx: number, lit: boolean, frame: number): void {
   set(buf, cx - 3, 58, PAL.brassLight);
   ring(buf, cx + 3, 58, 2, PAL.brass);
   set(buf, cx + 3, 58, PAL.brassLight);
-  // breech block, then the barrel stepping up to the right with a black
-  // underside so it separates from the slate backing
+  // breech block, then the barrel stepping up to the right with a shaded
+  // underside so the steps read
   fillRect(buf, cx - 5, 51, 4, 4, PAL.steelDark);
   fillRect(buf, cx - 1, 49, 4, 4, PAL.steel);
-  set(buf, cx - 1, 52, PAL.black);
-  set(buf, cx + 2, 52, PAL.black);
+  set(buf, cx - 1, 52, PAL.steelDark);
+  set(buf, cx + 2, 52, PAL.steelDark);
   fillRect(buf, cx + 3, 46, 3, 4, PAL.steel);
-  set(buf, cx + 3, 49, PAL.black);
+  set(buf, cx + 3, 49, PAL.steelDark);
   // brass-banded muzzle, black bore
   fillRect(buf, cx + 6, 44, 3, 3, PAL.steelDark);
   set(buf, cx + 6, 44, PAL.brassLight);
@@ -188,10 +191,10 @@ function drawButler(buf: Buf, cx: number, lit: boolean, opened: boolean): void {
   fillRect(buf, cx - 8, 49, 4, 1, PAL.brassLight);
   set(buf, cx - 7, 48, PAL.paper);
   // legs, polished shoes
-  fillRect(buf, cx - 2, 57, 2, 4, PAL.black);
-  fillRect(buf, cx + 1, 57, 2, 4, PAL.black);
-  set(buf, cx - 2, 60, PAL.steelDark);
-  set(buf, cx + 2, 60, PAL.steelDark);
+  fillRect(buf, cx - 2, 57, 2, 4, PAL.steelDark);
+  fillRect(buf, cx + 1, 57, 2, 4, PAL.steelDark);
+  set(buf, cx - 2, 60, PAL.steel);
+  set(buf, cx + 2, 60, PAL.steel);
 }
 
 const SUSPECTS = [drawSpider, drawOwl, drawHound, drawCannon] as const;
