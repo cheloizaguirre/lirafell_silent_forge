@@ -1,10 +1,10 @@
 # 8-bit prototype: checkpoint notes
 
-Written 2026-07-10 on the `proto-vault-8bit` branch. **Status: 5 of 7 scenes
-done (Vault, Entrance, Workshop, Archive, Prison). Remaining: Gallery,
+Written 2026-07-10 on the `proto-vault-8bit` branch. **Status: 6 of 7 scenes
+done (Vault, Entrance, Workshop, Archive, Prison, Gallery). Remaining:
 Spire.** The branch stays unmerged until the user approves the full set.
-This file is the resume-here doc for the remaining scenes: everything below
-was learned by building the first five, most of it by screenshot.
+This file is the resume-here doc for the remaining scene: everything below
+was learned by building the first six, most of it by screenshot.
 
 ## Pipeline (what exists)
 
@@ -62,20 +62,19 @@ was learned by building the first five, most of it by screenshot.
    Adjust `scenes.ts` with the SVG original noted inline (done for the
    automaton, the Warden, and the Workshop side doors, which moved from
    floor-corner boxes up onto the walls as real doorways).
-9. **Screenshots catch what suites can't.** Every scene shipped with a
+9. **A mascot sprite must stay clearly smaller than its machine.** The
+   Gallery's cuckoo started 3×3 beside the barrel and the whole cannon read
+   as a duck on a cart; shrunk to 2×2 and perched on the breech it reads as
+   cannon-with-bird. Same class of catch as rule #2: only visible by
+   screenshot.
+10. **Screenshots catch what suites can't.** Every scene shipped with a
    scratchpad Playwright script that drives the real flows (DM grants,
    placement, Spire arming, force-scene into prison) and captures each
    state variant. Caught: rune label collisions, all three black-on-black
    failures, the gloom moiré, the BANG hidden behind the puzzle modal.
 
-## Notes for the two remaining scenes
+## Notes for the remaining scene
 
-- **Gallery**: five display cases for the elimination puzzle. The plaque
-  clue ("Only the one who never sang served faithfully.") is a
-  `.pixel-caption`. Opportunity: five *distinct* mini-automaton sprites
-  (spider / owl / hound / cannon / butler) instead of the SVG's identical
-  silhouettes — item-identity thinking applied to suspects. Hotspots:
-  `automaton-displays` + back chip; check geometry before drawing.
 - **Spire**: the great dial (☉ as a drawn pixel sigil when armed — it's
   the Archive clue, must be big and unmissable; "dial dormant" becomes a
   caption or a dark dial face), the brass lever with the violet
@@ -87,7 +86,7 @@ was learned by building the first five, most of it by screenshot.
 
 ## Open items before merge
 
-- Gallery + Spire scenes.
+- Spire scene.
 - User approval pass over all seven, then merge (`main` still renders the
   SVG originals; the registry diff is the only integration point).
 - On merge: update NEXT_STEPS.md + the sprite-art-analysis doc (the
