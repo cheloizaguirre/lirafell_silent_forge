@@ -93,10 +93,13 @@ export const scenes: Scene[] = [
       {
         id: "dormant-warden",
         label: "The Dormant Warden",
-        x: 7,
-        y: 18,
-        w: 12,
-        h: 46,
+        // proto-vault-8bit: grown to cover the pixel colossus in its alcove
+        // (shifted right so it clears the archive doorway); the SVG
+        // original's box was x7,y18,w12,h46.
+        x: 11,
+        y: 16,
+        w: 15,
+        h: 62,
         actions: [
           {
             type: "showText",
@@ -202,19 +205,23 @@ export const scenes: Scene[] = [
       {
         id: "door-archive",
         label: "Door to Archive",
+        // proto-vault-8bit: raised onto the wall as a proper doorway; the
+        // SVG original's floor-corner box was x2,y76,w8,h18.
         x: 2,
-        y: 76,
-        w: 8,
-        h: 18,
+        y: 56,
+        w: 9,
+        h: 22,
         actions: [{ type: "navigate", sceneId: "archive" }],
       },
       {
         id: "door-gallery",
         label: "Door to Gallery",
-        x: 90,
-        y: 76,
-        w: 8,
-        h: 18,
+        // proto-vault-8bit: raised onto the wall as a proper doorway; the
+        // SVG original's floor-corner box was x90,y76,w8,h18.
+        x: 89,
+        y: 56,
+        w: 9,
+        h: 22,
         actions: [{ type: "navigate", sceneId: "gallery" }],
       },
       {

@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import { EntranceArtPixel } from "../scenes/pixel/EntranceArtPixel";
-import { WorkshopArt } from "../scenes/WorkshopArt";
+import { WorkshopArtPixel } from "../scenes/pixel/WorkshopArtPixel";
 import { GalleryArt } from "../scenes/GalleryArt";
 import { ArchiveArt } from "../scenes/ArchiveArt";
 import { VaultArtPixel } from "../scenes/pixel/VaultArtPixel";
@@ -15,7 +15,7 @@ export const sceneRegistry: Record<string, ComponentType<ArtProps>> = {
   // proto-vault-8bit: pixel prototypes stand in for the SVG originals, one
   // entry at a time -- swap back to ../scenes/<Name>Art to compare.
   EntranceArt: EntranceArtPixel,
-  WorkshopArt,
+  WorkshopArt: WorkshopArtPixel,
   GalleryArt,
   ArchiveArt,
   VaultArt: VaultArtPixel,
