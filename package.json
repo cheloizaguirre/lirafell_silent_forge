@@ -6,7 +6,8 @@
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "validate:content": "pnpm --filter @silent-forge/content validate",
-    "verify:realtime": "node scripts/verify-realtime.mjs"
+    "verify:realtime": "node scripts/verify-realtime.mjs",
+    "verify:mobile": "node scripts/verify-mobile.mjs"
   },
   "packageManager": "pnpm@11.3.0",
   "devDependencies": {
