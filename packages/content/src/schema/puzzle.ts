@@ -40,6 +40,9 @@ export const NumericDialPuzzleSchema = PuzzleBase.extend({
         label: z.string(),
         min: z.number().int(),
         max: z.number().int(),
+        // Optional display glyphs, indexed by dial value (Archive lens shows
+        // sigils, not digits). The submitted value stays the numeric index.
+        valueLabels: z.array(z.string()).optional(),
       }),
     )
     .min(1),

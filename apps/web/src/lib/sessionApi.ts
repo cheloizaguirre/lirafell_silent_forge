@@ -67,6 +67,30 @@ export async function placeItem(sessionId: string, itemId: string) {
   return data;
 }
 
+export async function armSpire(sessionId: string) {
+  const { data, error } = await supabase
+    .rpc("arm_spire", { p_session_id: sessionId })
+    .single<{ ok: boolean; already_armed?: boolean }>();
+  if (error) throw error;
+  return data;
+}
+
+export async function ventOverflow(sessionId: string) {
+  const { data, error } = await supabase
+    .rpc("vent_overflow", { p_session_id: sessionId })
+    .single<{ ok: boolean; already_vented?: boolean }>();
+  if (error) throw error;
+  return data;
+}
+
+export async function activateConvergence(sessionId: string) {
+  const { data, error } = await supabase
+    .rpc("activate_convergence", { p_session_id: sessionId })
+    .single<{ ok: boolean; already_won?: boolean; missing?: ("armed" | "vented" | "aligned")[] }>();
+  if (error) throw error;
+  return data;
+}
+
 export async function escapePrison(sessionId: string) {
   const { error } = await supabase.rpc("escape_prison", { p_session_id: sessionId });
   if (error) throw error;

@@ -45,6 +45,28 @@ export const puzzles: PuzzleContent[] = [
     sequenceLength: 3,
   },
   {
+    kind: "numeric-dial",
+    id: "archive-lens",
+    sceneId: "archive",
+    title: "Realign the Lens",
+    prompt:
+      "The memory lens sits in a rotating brass housing, five sigils etched around its rim. A faint beam flickers from the Spire above — the lens must be turned to answer whatever sigil the Spire's dial now shows.",
+    onFailNoise: 0,
+    wrongText: "The beam scatters, unfocused — that sigil does not match the Spire's dial.",
+    solvedText:
+      "The lens locks into perfect resonance. A thin violet beam lances upward toward the Vault above.",
+    dials: [
+      {
+        id: "lens-sigil",
+        label: "Lens Sigil",
+        min: 0,
+        max: 4,
+        valueLabels: ["✦", "☾", "☉", "◈", "⚙"],
+      },
+    ],
+    submitLabel: "Lock Alignment",
+  },
+  {
     kind: "elimination",
     id: "gallery-elimination",
     sceneId: "gallery",

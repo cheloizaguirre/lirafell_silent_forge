@@ -23,8 +23,24 @@ export interface PlaceItemAction {
   missingText?: string;
   allPlacedText?: string;
 }
+export interface ArmSpireAction {
+  type: "armSpire";
+  successText: string;
+  alreadyArmedText: string;
+}
+export interface VentOverflowAction {
+  type: "ventOverflow";
+  successText: string;
+  alreadyVentedText: string;
+}
 export interface ActivateConvergenceAction {
   type: "activateConvergence";
+  successText: string;
+  // On refusal the dispatcher composes: resistPrefix + joined missingTexts.
+  // Which parts are missing comes from the server's re-check, never from
+  // client-side flag evaluation alone.
+  resistPrefix: string;
+  missingTexts: { armed: string; vented: string; aligned: string };
 }
 export interface RepeatClickAction {
   type: "repeatClick";
@@ -42,6 +58,8 @@ export type Action =
   | ShowTextAction
   | OpenPuzzleAction
   | PlaceItemAction
+  | ArmSpireAction
+  | VentOverflowAction
   | ActivateConvergenceAction
   | RepeatClickAction
   | EscapePrisonAction;
@@ -65,7 +83,26 @@ export const ActionSchema: z.ZodType<Action> = z.lazy(() =>
       missingText: z.string().optional(),
       allPlacedText: z.string().optional(),
     }),
-    z.object({ type: z.literal("activateConvergence") }),
+    z.object({
+      type: z.literal("armSpire"),
+      successText: z.string(),
+      alreadyArmedText: z.string(),
+    }),
+    z.object({
+      type: z.literal("ventOverflow"),
+      successText: z.string(),
+      alreadyVentedText: z.string(),
+    }),
+    z.object({
+      type: z.literal("activateConvergence"),
+      successText: z.string(),
+      resistPrefix: z.string(),
+      missingTexts: z.object({
+        armed: z.string(),
+        vented: z.string(),
+        aligned: z.string(),
+      }),
+    }),
     z.object({
       type: z.literal("repeatClick"),
       counterId: z.string(),

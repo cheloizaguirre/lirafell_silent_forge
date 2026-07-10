@@ -1,5 +1,12 @@
 import type { Action } from "@silent-forge/content";
-import { escapePrison, placeItem, setCurrentScene } from "../lib/sessionApi";
+import {
+  activateConvergence,
+  armSpire,
+  escapePrison,
+  placeItem,
+  setCurrentScene,
+  ventOverflow,
+} from "../lib/sessionApi";
 import { useSessionStore } from "../state/useSessionStore";
 
 export interface DispatchContext {
@@ -68,9 +75,38 @@ async function dispatchOne(action: Action, ctx: DispatchContext): Promise<void> 
       await escapePrison(ctx.sessionId);
       return;
 
-    case "activateConvergence":
-      // Spire/convergence -- Phase 3, not built yet.
-      ctx.log("Nothing happens yet -- this part of the quest isn't built.", "flavor");
+    case "armSpire": {
+      const result = await armSpire(ctx.sessionId);
+      if (result.already_armed) {
+        // Race: someone else threw the lever between our render and our click.
+        ctx.log(action.alreadyArmedText, "flavor");
+      } else {
+        ctx.log(action.successText, "warn");
+      }
       return;
+    }
+
+    case "ventOverflow": {
+      const result = await ventOverflow(ctx.sessionId);
+      if (result.already_vented) {
+        ctx.log(action.alreadyVentedText, "flavor");
+      } else {
+        ctx.log(action.successText, "system");
+      }
+      return;
+    }
+
+    case "activateConvergence": {
+      // The server re-checks armed/vented/aligned; its verdict (not local
+      // flag state, which may lag realtime) decides which text we narrate.
+      const result = await activateConvergence(ctx.sessionId);
+      if (result.ok) {
+        ctx.log(action.successText, "system");
+      } else {
+        const parts = (result.missing ?? []).map((m) => action.missingTexts[m]);
+        ctx.log(`${action.resistPrefix}${parts.join("; ")}.`, "warn");
+      }
+      return;
+    }
   }
 }
