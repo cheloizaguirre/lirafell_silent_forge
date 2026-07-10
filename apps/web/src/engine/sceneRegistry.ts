@@ -3,7 +3,7 @@ import { EntranceArt } from "../scenes/EntranceArt";
 import { WorkshopArt } from "../scenes/WorkshopArt";
 import { GalleryArt } from "../scenes/GalleryArt";
 import { ArchiveArt } from "../scenes/ArchiveArt";
-import { VaultArt } from "../scenes/VaultArt";
+import { VaultArtPixel } from "../scenes/pixel/VaultArtPixel";
 import { SpireArt } from "../scenes/SpireArt";
 import { PrisonArt } from "../scenes/PrisonArt";
 import type { ArtProps } from "../scenes/artTypes";
@@ -16,7 +16,10 @@ export const sceneRegistry: Record<string, ComponentType<ArtProps>> = {
   WorkshopArt,
   GalleryArt,
   ArchiveArt,
-  VaultArt,
+  // proto-vault-8bit: the pixel prototype stands in for the SVG VaultArt.
+  // Scene migration happens here, one entry at a time -- swap back to
+  // ../scenes/VaultArt to compare.
+  VaultArt: VaultArtPixel,
   SpireArt,
   PrisonArt,
 };

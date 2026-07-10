@@ -641,6 +641,42 @@ main {
   cursor: default;
 }
 
+/* ---- 8-bit prototype (proto-vault-8bit) --------------------------------- */
+.scene-pixel {
+  position: absolute;
+  inset: 0;
+}
+.scene-pixel-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+/* Rune labels stay HTML (readable text has no business being 3px tall);
+   they carry the data-converge/data-lit hooks the verify suite reads. */
+.pixel-rune {
+  position: absolute;
+  top: 76%;
+  transform: translateX(-50%);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: var(--accent-dim);
+}
+.pixel-rune[data-lit="true"] {
+  color: var(--accent-bright);
+  text-shadow: 0 0 8px rgba(201, 163, 255, 0.6);
+}
+.pixel-rune-won {
+  color: var(--accent-bright);
+  text-shadow: 0 0 8px rgba(201, 163, 255, 0.6);
+  /* legible over the victory dither */
+  background: rgba(11, 12, 14, 0.8);
+  padding: 2px 8px;
+  font-size: 14px;
+}
+
 .dm-cheatsheet {
   background: var(--shadow2);
   border: 1px solid var(--line);
