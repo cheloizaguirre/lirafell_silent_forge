@@ -6,6 +6,8 @@ import { useSessionStore } from "../state/useSessionStore";
 import { useSessionState } from "../state/useSessionState";
 import { puzzles } from "@silent-forge/content";
 import { SceneRenderer } from "../engine/SceneRenderer";
+import { NoiseBang } from "../engine/NoiseBang";
+import type { NoiseEvent } from "../lib/sessionApi";
 import { EliminationPuzzle } from "../engine/puzzles/EliminationPuzzle";
 import { NumericDialPuzzle } from "../engine/puzzles/NumericDialPuzzle";
 import { OrderedSequencePuzzle } from "../engine/puzzles/OrderedSequencePuzzle";
@@ -26,6 +28,7 @@ export function PlayPage() {
   const logIdRef = useRef(0);
 
   const setSession = useSessionStore((s) => s.setSession);
+  const selfPlayerId = useSessionStore((s) => s.selfPlayerId);
   const self = useSessionStore((s) => s.self());
   const sessionState = useSessionStore((s) => s.sessionState);
   const players = useSessionStore((s) => s.players);
@@ -88,7 +91,10 @@ export function PlayPage() {
     );
   }
 
-  const noiseDanger = sessionState.noise >= 70;
+  // Noise itself is DM-facing now -- players only get the BANGs. Latest
+  // message sits big under the scene for the room to read; the full
+  // history lives in the right rail, newest first.
+  const latest = log[log.length - 1];
 
   return (
     <>
@@ -98,44 +104,55 @@ export function PlayPage() {
           {self.display_name} · code {code?.toUpperCase()}
         </p>
       </header>
-      <main>
-        <div className="objective">
-          <b>Inventory</b>
-          {sessionState.inventory.length > 0 ? sessionState.inventory.join(", ") : "empty-handed"}
-        </div>
+      <main className="play-layout">
+        <div className="play-main">
+          <div className="objective">
+            <b>Inventory</b>
+            {sessionState.inventory.length > 0 ? sessionState.inventory.join(", ") : "empty-handed"}
+          </div>
 
-        <div className="noise-row">
-          <span className="noise-label">Noise</span>
-          <div className={`noise-gauge ${noiseDanger ? "danger" : ""}`}>
-            <div className="noise-fill" style={{ width: `${sessionState.noise}%` }} />
+          <div className="scene-wrap">
+            <SceneRenderer
+              sceneId={self.current_scene_id}
+              sessionId={sessionId}
+              flags={sessionState.flags}
+              inventory={sessionState.inventory}
+              log={appendLog}
+              openPuzzle={setOpenPuzzleId}
+            />
+            <NoiseBang
+              event={sessionState.flags.noiseEvent as NoiseEvent | undefined}
+              selfPlayerId={selfPlayerId}
+            />
+          </div>
+
+          <div className="log-latest">
+            {latest ? (
+              <p className={`log-${latest.tone}`}>{latest.text}</p>
+            ) : (
+              <p className="log-flavor">Look around. Click something to begin.</p>
+            )}
           </div>
         </div>
 
-        <SceneRenderer
-          sceneId={self.current_scene_id}
-          sessionId={sessionId}
-          flags={sessionState.flags}
-          inventory={sessionState.inventory}
-          log={appendLog}
-          openPuzzle={setOpenPuzzleId}
-        />
-
-        <div className="log-panel">
-          {log.length === 0 && <p className="log-flavor">Look around. Click something to begin.</p>}
-          {log.map((entry) => (
-            <p key={entry.id} className={`log-${entry.tone}`}>
-              {entry.text}
-            </p>
-          ))}
-        </div>
-
-        <ul className="player-list">
-          {players.map((p) => (
-            <li key={p.id}>
-              <b>{p.display_name}</b> ({p.role}) — {p.current_scene_id}
-            </li>
-          ))}
-        </ul>
+        <aside className="log-history">
+          {log.length === 0 && <p className="log-history-empty">Nothing has happened yet.</p>}
+          {log
+            .slice()
+            .reverse()
+            .map((entry) => (
+              <div key={entry.id} className={`log-bubble log-${entry.tone}`}>
+                <p>{entry.text}</p>
+              </div>
+            ))}
+          <ul className="player-list">
+            {players.map((p) => (
+              <li key={p.id}>
+                <b>{p.display_name}</b> ({p.role}) — {p.current_scene_id}
+              </li>
+            ))}
+          </ul>
+        </aside>
       </main>
 
       {openPuzzleId &&

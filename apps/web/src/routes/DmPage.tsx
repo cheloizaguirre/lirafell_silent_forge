@@ -3,6 +3,7 @@ import { useParams } from "react-router";
 import { scenes } from "@silent-forge/content";
 import { ensureAnonymousSession } from "../lib/auth";
 import {
+  dmAdjustNoise,
   dmClearNoise,
   dmForceScene,
   dmGrantItem,
@@ -143,6 +144,9 @@ export function DmPage() {
         <div className="objective">
           <b>Noise</b>
           {sessionState.noise}
+          <div className={`noise-gauge ${sessionState.noise >= 70 ? "danger" : ""}`}>
+            <div className="noise-fill" style={{ width: `${sessionState.noise}%` }} />
+          </div>
         </div>
         <div className="objective">
           <b>Inventory</b>
@@ -150,7 +154,11 @@ export function DmPage() {
         </div>
         <div className="objective">
           <b>Flags</b>
-          {Object.keys(sessionState.flags).length > 0 ? JSON.stringify(sessionState.flags) : "none set"}
+          {(() => {
+            // noiseEvent is BANG plumbing, not game state -- pure churn here.
+            const { noiseEvent: _omitted, ...dmFlags } = sessionState.flags;
+            return Object.keys(dmFlags).length > 0 ? JSON.stringify(dmFlags) : "none set";
+          })()}
         </div>
         <ul className="player-list">
           {players.map((p) => (
@@ -213,6 +221,20 @@ export function DmPage() {
           </div>
           <div className="dm-override-row">
             <span className="dm-override-label">Noise</span>
+            <button
+              type="button"
+              disabled={actionBusy || sessionState.noise === 0}
+              onClick={() => void runDmAction(() => dmAdjustNoise(sessionId, -10))}
+            >
+              −10
+            </button>
+            <button
+              type="button"
+              disabled={actionBusy || sessionState.noise === 100}
+              onClick={() => void runDmAction(() => dmAdjustNoise(sessionId, 10))}
+            >
+              +10
+            </button>
             <button
               type="button"
               disabled={actionBusy || sessionState.noise === 0}
