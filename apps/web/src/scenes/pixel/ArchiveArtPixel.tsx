@@ -73,8 +73,14 @@ function draw(ctx: CanvasRenderingContext2D, s: ArchiveState, frame: number): vo
       if (bx > 55) bx = 11;
     });
   }
-  // dark slot where the four great tomes stand
-  fillRect(buf, 10, 48, 48, 29, PAL.black);
+  // The tome recess reads as shelf-wood, not a void -- the black decoy
+  // tome has to silhouette against SOMETHING. Vertical plank seams show
+  // in the gaps between spines; a shelf board runs beneath them.
+  for (const px of [16, 27, 38, 49] as const) {
+    for (let y = 49; y < 76; y++) set(buf, px, y, PAL.wood);
+  }
+  fillRect(buf, 9, 76, 50, 2, PAL.wood);
+  for (let x = 9; x < 59; x++) set(buf, x, 76, PAL.woodLight);
 
   // the colored tomes themselves
   for (const tome of TOMES) {
