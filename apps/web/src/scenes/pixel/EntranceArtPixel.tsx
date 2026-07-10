@@ -67,23 +67,30 @@ function draw(ctx: CanvasRenderingContext2D, frame: number): void {
   set(buf, 80, 3, PAL.purpleBright);
 
   // ---- Slumped automaton (SVG ~x236-264, y345-430 -> x47-53, y69-86) -------
+  // Black chassis with violet edge-light: steel faded into the slate wall.
   ditherRect(buf, 44, 85, 13, 2, PAL.black);
   // legs splayed on the floor
-  fillRect(buf, 45, 82, 4, 3, PAL.steelDark);
-  fillRect(buf, 52, 82, 4, 3, PAL.steelDark);
+  fillRect(buf, 45, 82, 4, 3, PAL.black);
+  fillRect(buf, 52, 82, 4, 3, PAL.black);
+  set(buf, 45, 82, PAL.purpleDim);
+  set(buf, 55, 82, PAL.purpleDim);
   // torso leaning into the wall
-  fillRect(buf, 47, 72, 7, 11, PAL.steelDark);
-  for (let y = 72; y < 83; y++) set(buf, 47, y, PAL.steel);
-  // brass chest plate, long dead
-  fillRect(buf, 48, 75, 4, 3, PAL.brass);
-  set(buf, 48, 75, PAL.brassLight);
+  fillRect(buf, 47, 72, 7, 11, PAL.black);
+  for (let y = 72; y < 83; y++) set(buf, 47, y, PAL.purpleDim);
+  set(buf, 48, 72, PAL.purpleDim);
+  // chest plate, its aether core long dead
+  fillRect(buf, 48, 75, 4, 3, PAL.purpleDim);
+  set(buf, 49, 76, PAL.purple);
   // head lolled to one side; one eye still faintly lit
-  disc(buf, 49, 69, 3, PAL.steelDark);
-  set(buf, 47, 68, PAL.steel);
-  set(buf, 48, 69, PAL.purple);
-  set(buf, 51, 69, PAL.black);
+  disc(buf, 49, 69, 3, PAL.black);
+  set(buf, 47, 67, PAL.purpleDim);
+  set(buf, 48, 66, PAL.purpleDim);
+  set(buf, 49, 66, PAL.purpleDim);
+  set(buf, 48, 69, PAL.purpleBright);
+  set(buf, 51, 69, PAL.purpleDim);
   // limp arm
-  fillRect(buf, 54, 76, 2, 6, PAL.steelDark);
+  fillRect(buf, 54, 76, 2, 6, PAL.black);
+  set(buf, 54, 76, PAL.purpleDim);
 
   // ---- Writing desk (SVG x560-650, y360-435 -> x112-130, y72-87) -----------
   ditherRect(buf, 111, 86, 20, 2, PAL.black);
