@@ -24,8 +24,8 @@ export function VaultArt({ flags }: ArtProps) {
   return (
     <SceneShell>
       {won && <circle cx="400" cy="250" r="230" fill="url(#glow)" opacity="0.5" />}
-      <circle cx="400" cy="250" r="180" fill="none" stroke={won ? "#8b5fbf" : "#3a3346"} strokeWidth="6" />
-      <rect x="330" y="200" width="140" height="100" fill="#171320" stroke="#3a3346" strokeWidth="2" />
+      <circle cx="400" cy="250" r="180" fill="none" stroke={won ? "#8b5fbf" : "#34373d"} strokeWidth="6" />
+      <rect x="330" y="200" width="140" height="100" fill="#16171a" stroke="#34373d" strokeWidth="2" />
       {/* heart socket */}
       <path
         d="M355 230 c-8,-12 -26,-4 -18,10 c6,10 18,16 18,16 c0,0 12,-6 18,-16 c8,-14 -10,-22 -18,-10 z"

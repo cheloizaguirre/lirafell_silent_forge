@@ -1,4 +1,6 @@
+import type { FlagValue } from "../lib/sessionApi";
+
 export interface ArtProps {
-  flags: Record<string, boolean | number | string>;
+  flags: Record<string, FlagValue>;
   inventory: string[];
 }

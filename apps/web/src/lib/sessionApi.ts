@@ -10,9 +10,21 @@ export interface PlayerRow {
   joined_at: string;
 }
 
+// Stamped into flags by add_noise (and dm_adjust_noise) whenever noise goes
+// UP. seq is monotonically increasing so clients can tell "new bang" from a
+// reconcile re-fetch replaying old state; `by` is the actor's players.id so
+// each client knows whether the bang was its own.
+export interface NoiseEvent {
+  seq: number;
+  by: string;
+  amount: number;
+}
+
+export type FlagValue = boolean | number | string | NoiseEvent;
+
 export interface SessionStateRow {
   session_id: string;
-  flags: Record<string, boolean | number | string>;
+  flags: Record<string, FlagValue>;
   inventory: string[];
   noise: number;
   puzzle_working: Record<string, unknown>;
@@ -107,6 +119,14 @@ export async function dmForceScene(sessionId: string, playerId: string, sceneId:
 
 export async function dmClearNoise(sessionId: string) {
   const { error } = await supabase.rpc("dm_clear_noise", { p_session_id: sessionId });
+  if (error) throw error;
+}
+
+export async function dmAdjustNoise(sessionId: string, delta: number) {
+  const { error } = await supabase.rpc("dm_adjust_noise", {
+    p_session_id: sessionId,
+    p_delta: delta,
+  });
   if (error) throw error;
 }
 

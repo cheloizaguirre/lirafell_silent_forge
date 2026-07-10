@@ -76,6 +76,12 @@ check("Player joined and landed on /play/<code>", true);
 await waitForDm(dm, ".player-list", (t) => t.includes("Player Two"), "DM sees the new player appear live");
 await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*entrance/.test(t), "DM sees Player Two in 'entrance'");
 
+// ---- Phase 6: noise is DM-facing — players get BANGs, not a gauge -----------
+check("Player view has no noise gauge (noise is DM-facing now)",
+  (await player.locator(".noise-gauge").count()) === 0);
+check("DM console shows the noise gauge",
+  (await dm.locator(".noise-gauge").count()) === 1);
+
 // ---- Player moves: entrance -> workshop ------------------------------------
 await player.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
 await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*workshop/.test(t), "DM sees scene change to 'workshop' (realtime, no reload)");
@@ -90,8 +96,14 @@ await player.waitForSelector(".puzzle-panel", { timeout: 10000 });
 check("Puzzle modal opened for player", true);
 
 const noiseTile = ".objective:has(b:text-is('Noise'))";
+// Arm the BANG watcher before the noisy click: the burst only lives ~1.2s.
+const wrongAnswerBang = player
+  .waitForSelector(".noise-bang-big", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
 await player.getByRole("button", { name: "Brass Owl" }).click();
 await waitForDm(dm, noiseTile, (t) => /Noise\s*30/.test(t), "DM sees noise rise to 30 after player's wrong answer");
+check("Big BANG burst on the wrong-answer player's own screen", await wrongAnswerBang);
 
 // ---- Player answers CORRECT -> inventory + flag -----------------------------
 await player.getByRole("button", { name: "Silent Butler" }).click();
@@ -154,6 +166,15 @@ for (let i = 0; i < dialClicks.length; i++) {
 await player.getByRole("button", { name: "Test the Pressure" }).click();
 await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => t.includes("valve"), "Correct valve code grants the Pressure Valve Key");
 await player.getByRole("button", { name: "Close" }).click();
+
+// ---- Phase 6: split log — one big latest message + newest-first history -----
+const latestCount = await player.locator(".log-latest p").count();
+check("Latest panel holds exactly one message", latestCount === 1, `${latestCount} <p>`);
+const latestText = ((await player.locator(".log-latest").textContent()) ?? "").trim();
+const topBubble = ((await player.locator(".log-bubble").first().textContent()) ?? "").trim();
+const bubbleCount = await player.locator(".log-bubble").count();
+check("History rail is newest-first (top bubble matches the latest message)",
+  bubbleCount >= 2 && topBubble === latestText, `${bubbleCount} bubbles; top ${JSON.stringify(topBubble.slice(0, 50))}`);
 
 // ---- Archive: books in violet -> ash -> ember order --------------------------
 await player.click('button.hotspot[aria-label="Door to Archive"]');
@@ -228,8 +249,8 @@ check("Aligner has NO Realign the Lens hotspot before the Spire is armed",
 
 // ---- Premature activation: server refuses, names everything missing ---------
 await watcher.click('button.hotspot[aria-label="Activate the Convergence"]');
-await watcher.waitForSelector(".log-panel .log-warn", { timeout: 10000 });
-const resistText = (await watcher.locator(".log-panel").textContent()) ?? "";
+await watcher.waitForSelector(".log-latest .log-warn", { timeout: 10000 });
+const resistText = (await watcher.locator(".log-latest").textContent()) ?? "";
 check("Premature convergence is refused with all three parts named",
   resistText.includes("The convergence resists") &&
   resistText.includes("Spire mechanism") &&
@@ -248,8 +269,20 @@ await player.waitForSelector('button.hotspot[aria-label="Stairwell to the Spire"
 check("Spire stairwell opened in the Workshop once allPlaced", true);
 await player.click('button.hotspot[aria-label="Stairwell to the Spire"]');
 await player.waitForSelector('button.hotspot[aria-label="Great Lever"]', { timeout: 10000 });
+// Both BANG watchers armed before the heave: big on the actor, small on the
+// hands-off watcher parked in the Vault (pure realtime, zero interactions).
+const leverBigBang = player
+  .waitForSelector(".noise-bang-big", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
+const leverSmallBang = watcher
+  .waitForSelector(".noise-bang-small", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
 await player.click('button.hotspot[aria-label="Great Lever"]');
 await waitForDm(dm, noiseTile, (t) => /Noise\s*35/.test(t), "Arming the Spire costs 35 noise (it was LOUD)");
+check("Big BANG burst on the lever-heaver's own screen", await leverBigBang);
+check("Small anonymous BANG on the watcher's screen via realtime", await leverSmallBang);
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("armed"), "DM sees 'armed' flag set");
 
 // ---- Room 2 (Workshop): overflow valve APPEARS via realtime, venter vents ---
@@ -287,7 +320,7 @@ check("Watcher took zero navigations/reloads while three rooms acted", watcherNa
 await watcher.click('button.hotspot[aria-label="Activate the Convergence"]');
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("won"), "DM sees 'won' flag set");
 await watcher.waitForSelector('[data-converge="won"]', { timeout: 10000 });
-const wonLog = (await watcher.locator(".log-panel").textContent()) ?? "";
+const wonLog = (await watcher.locator(".log-latest").textContent()) ?? "";
 check("Watcher sees the victory narration", wonLog.includes("magic has returned to the Silent Forge"));
 check("Convergence hotspot is gone after the win",
   (await watcher.locator('button.hotspot[aria-label="Activate the Convergence"]').count()) === 0);
@@ -306,6 +339,20 @@ await dm.getByRole("button", { name: "Move player" }).click();
 await venter.waitForSelector('button.hotspot[aria-label="Examine the Automatons"]', { timeout: 15000 });
 check("DM's Move player pulled Player Three into the Gallery (no action on their device)", true);
 await waitForDm(dm, ".player-list", (t) => /Player Three[\s\S]*gallery/.test(t), "Roster shows Player Three in 'gallery'");
+
+// ---- Noise steppers: DM nudges the meter, players hear it -------------------
+// DM-added noise routes through add_noise, so player screens get the same
+// small anonymous BANG as any other bystander noise. Player Three (moved to
+// the Gallery above) is our bystander.
+const dmNoiseBang = venter
+  .waitForSelector(".noise-bang-small", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
+await dm.getByRole("button", { name: "+10" }).click();
+await waitForDm(dm, noiseTile, (t) => /Noise\s*45/.test(t), "DM +10 stepper raises noise 35 -> 45");
+check("DM-added noise lands as a small anonymous BANG on a player's screen", await dmNoiseBang);
+await dm.getByRole("button", { name: "−10" }).click();
+await waitForDm(dm, noiseTile, (t) => /Noise\s*35(?!\d)/.test(t), "DM −10 stepper lowers noise 45 -> 35");
 
 // ---- Standalone clear-noise (the 35 from arming the Spire) ------------------
 await dm.getByRole("button", { name: "Clear noise (35)" }).click();

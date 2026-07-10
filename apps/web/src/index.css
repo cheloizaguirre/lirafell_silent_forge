@@ -1,16 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap");
 
+/* Phase 6 theme: standard neutral dark mode. Purple is a *highlight* color
+   only -- hotspot glow, key borders, system text, magical elements in the
+   scene art -- never a surface. Type is scaled for tablets and a wall
+   projector, not phones. */
 :root {
-  --bg: #0a090e;
-  --bg2: #14111c;
-  --shadow: #221d2c;
-  --shadow2: #171320;
-  --line: #3a3346;
+  --bg: #0b0c0e;
+  --bg2: #141518;
+  --shadow: #1e2024;
+  --shadow2: #16171a;
+  --line: #34373d;
   --accent: #8b5fbf;
   --accent-bright: #c9a3ff;
   --accent-dim: #5c4577;
-  --text: #d6cfe3;
-  --muted: #8a8298;
+  --text: #e3e4e8;
+  --muted: #9a9ca3;
   --danger: #a3475a;
   --danger-bright: #e0768a;
 }
@@ -26,31 +30,32 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: "EB Garamond", serif;
+  font-size: 19px;
 }
 
 #root {
-  max-width: 920px;
+  max-width: 1280px;
   margin: 0 auto;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(ellipse at 50% -10%, #1c1728 0%, var(--bg) 60%);
+  background: radial-gradient(ellipse at 50% -10%, #17181b 0%, var(--bg) 60%);
 }
 
 h1 {
   font-family: "Cinzel", serif;
   font-weight: 700;
   letter-spacing: 1px;
-  font-size: 26px;
+  font-size: 32px;
   margin: 0 0 4px;
   color: var(--accent-bright);
-  text-shadow: 0 0 18px rgba(139, 95, 191, 0.45);
+  text-shadow: 0 0 8px rgba(139, 95, 191, 0.25);
 }
 
 .subtitle {
   font-style: italic;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 17px;
   margin-bottom: 12px;
 }
 
@@ -67,20 +72,43 @@ main {
   gap: 14px;
 }
 
+/* Play route: main column + history rail. */
+.play-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  padding: 16px 22px;
+  align-items: start;
+}
+.play-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .play-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .objective {
-  font-size: 15px;
+  font-size: 18px;
   color: var(--text);
   background: var(--shadow2);
   border: 1px solid var(--line);
   border-left: 3px solid var(--accent);
   padding: 8px 12px;
   border-radius: 2px;
+  /* the DM's Flags dump is one long unbroken JSON string */
+  overflow-wrap: anywhere;
 }
 .objective b {
-  color: var(--accent-bright);
+  color: var(--muted);
   font-family: "Cinzel", serif;
   font-weight: 500;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 1px;
   text-transform: uppercase;
   display: block;
@@ -93,7 +121,7 @@ main {
   gap: 10px;
 }
 .noise-label {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--muted);
@@ -123,6 +151,66 @@ main {
   }
   to {
     filter: brightness(1.6);
+  }
+}
+
+.scene-wrap {
+  position: relative;
+}
+
+/* BANG bursts (see NoiseBang.tsx). Big = your own noise, centered over the
+   scene; small = someone else's, tucked in the corner. Deliberately the
+   loudest color moment in the app -- and deliberately not purple. */
+.noise-bang {
+  position: absolute;
+  pointer-events: none;
+  /* above the puzzle overlay (z 10): most noise comes from wrong answers
+     inside a modal, and the burst must not hide behind it */
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.6));
+}
+.noise-bang-big {
+  inset: 0;
+}
+.noise-bang-big svg {
+  width: min(55%, 360px);
+  animation: bang-pop 1.2s ease-out forwards;
+}
+.noise-bang-small {
+  top: 12px;
+  right: 12px;
+}
+.noise-bang-small svg {
+  width: 88px;
+  animation: bang-pop 1.2s ease-out forwards;
+}
+@keyframes bang-pop {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  12% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  22% {
+    transform: scale(0.95) rotate(-1deg);
+  }
+  32% {
+    transform: scale(1.03) rotate(0deg);
+  }
+  40% {
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.02);
+    opacity: 0;
   }
 }
 
@@ -174,10 +262,10 @@ main {
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  background: #0d0b12;
+  background: #101113;
   border: 1px solid var(--accent-dim);
   color: var(--accent-bright);
-  font-size: 12px;
+  font-size: 15px;
   padding: 3px 8px;
   border-radius: 3px;
   opacity: 0;
@@ -191,23 +279,56 @@ main {
   opacity: 1;
 }
 
-.log-panel {
+/* The one message everyone in the room should be able to read from the
+   couch -- only ever holds the latest entry. */
+.log-latest {
   background: var(--shadow2);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 12px 16px;
-  min-height: 110px;
-  max-height: 220px;
+  padding: 14px 18px;
+  min-height: 72px;
+  font-size: 21px;
+  line-height: 1.45;
+}
+.log-latest p {
+  margin: 0;
+}
+
+/* Right rail: everything said so far, newest first. */
+.log-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-height: calc(100svh - 140px);
   overflow-y: auto;
+  padding-right: 2px;
+}
+.log-bubble {
+  background: var(--shadow2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 12px;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.4;
+  color: var(--muted);
 }
-.log-panel p {
-  margin: 0 0 8px;
+.log-bubble p {
+  margin: 0;
 }
-.log-panel p:last-child {
-  margin-bottom: 0;
+.log-bubble.log-system {
+  border-left-color: var(--accent);
 }
+.log-bubble.log-warn {
+  border-left-color: var(--danger-bright);
+}
+.log-history-empty {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 16px;
+}
+
 .log-flavor {
   color: var(--text);
 }
@@ -218,11 +339,19 @@ main {
 .log-warn {
   color: var(--danger-bright);
 }
+/* In history bubbles the tone lives in the border, not the text -- the
+   rail should read as a quiet backlog, not compete with .log-latest. */
+.log-bubble.log-flavor,
+.log-bubble.log-system,
+.log-bubble.log-warn {
+  color: var(--muted);
+  font-style: normal;
+}
 
 .puzzle-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 9, 14, 0.75);
+  background: rgba(8, 9, 11, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,13 +363,13 @@ main {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 20px;
-  max-width: 480px;
+  max-width: 560px;
   width: 100%;
 }
 .puzzle-panel h2 {
   font-family: "Cinzel", serif;
   color: var(--accent-bright);
-  font-size: 18px;
+  font-size: 22px;
   margin: 0 0 8px;
 }
 .puzzle-options {
@@ -257,7 +386,7 @@ main {
   border-radius: 4px;
   cursor: pointer;
   font-family: "EB Garamond", serif;
-  font-size: 15px;
+  font-size: 18px;
   text-align: left;
 }
 .puzzle-option:hover:not(:disabled) {
@@ -277,6 +406,7 @@ main {
   border-radius: 4px;
   cursor: pointer;
   font-family: "EB Garamond", serif;
+  font-size: 16px;
 }
 
 .puzzle-dials {
@@ -289,7 +419,7 @@ main {
 }
 .puzzle-dial-label {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--muted);
@@ -298,7 +428,7 @@ main {
 .puzzle-dial-value {
   display: block;
   font-family: "Cinzel", serif;
-  font-size: 26px;
+  font-size: 32px;
   color: var(--accent-bright);
 }
 .puzzle-pick-order {
@@ -306,12 +436,12 @@ main {
 }
 .puzzle-sequence-status {
   margin: 10px 0 0;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--muted);
   font-style: italic;
 }
 
-/* The DM console's one write surface -- deliberately louder than the
+/* The DM console's loudest write surface -- deliberately louder than the
    read-only dumps around it. */
 .warden-alert {
   background: var(--shadow2);
@@ -323,14 +453,14 @@ main {
 .warden-alert h2 {
   font-family: "Cinzel", serif;
   color: #e0768a;
-  font-size: 15px;
+  font-size: 17px;
   letter-spacing: 1px;
   text-transform: uppercase;
   margin: 0 0 6px;
 }
 .warden-alert p {
   margin: 0 0 10px;
-  font-size: 15px;
+  font-size: 18px;
 }
 .warden-actions {
   display: flex;
@@ -345,7 +475,7 @@ main {
   border-radius: 4px;
   cursor: pointer;
   font-family: "EB Garamond", serif;
-  font-size: 14px;
+  font-size: 16px;
 }
 .warden-actions button:hover:not(:disabled) {
   border-color: #e0768a;
@@ -361,7 +491,7 @@ main {
 }
 
 .form-shell {
-  max-width: 420px;
+  max-width: 460px;
   margin: 60px auto;
   padding: 24px;
   background: var(--shadow2);
@@ -370,7 +500,7 @@ main {
 }
 .form-shell label {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--muted);
@@ -385,27 +515,29 @@ main {
   border-radius: 4px;
   color: var(--text);
   font-family: "EB Garamond", serif;
-  font-size: 15px;
+  font-size: 18px;
 }
 .form-shell button {
   margin-top: 18px;
   width: 100%;
   padding: 10px;
-  background: var(--accent);
-  border: none;
+  background: var(--shadow);
+  border: 1px solid var(--line);
   border-radius: 4px;
-  color: #0a090e;
+  color: var(--text);
   font-family: "Cinzel", serif;
   font-weight: 700;
+  font-size: 17px;
   letter-spacing: 0.5px;
   cursor: pointer;
 }
 .form-shell button:hover {
-  background: var(--accent-bright);
+  border-color: var(--accent);
+  color: var(--accent-bright);
 }
 .form-shell .error {
   color: var(--danger-bright);
-  font-size: 13px;
+  font-size: 15px;
   margin-top: 10px;
 }
 
@@ -418,11 +550,16 @@ main {
   gap: 4px;
 }
 .player-list li {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--muted);
 }
 .player-list b {
   color: var(--text);
+}
+.log-history .player-list {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  margin-top: 4px;
 }
 
 .dm-overrides {
@@ -438,7 +575,7 @@ main {
 .dm-overrides h2 {
   font-family: "Cinzel", serif;
   color: var(--accent-bright);
-  font-size: 15px;
+  font-size: 17px;
   letter-spacing: 1px;
   text-transform: uppercase;
   margin: 0;
@@ -452,7 +589,7 @@ main {
 .dm-override-row label,
 .dm-override-label {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
 }
 .dm-override-row select {
   background: var(--shadow);
@@ -461,7 +598,7 @@ main {
   padding: 7px 8px;
   border-radius: 4px;
   font-family: "EB Garamond", serif;
-  font-size: 14px;
+  font-size: 16px;
 }
 .dm-override-row button {
   background: var(--shadow2);
@@ -471,7 +608,7 @@ main {
   border-radius: 4px;
   cursor: pointer;
   font-family: "EB Garamond", serif;
-  font-size: 14px;
+  font-size: 16px;
 }
 .dm-override-row button:hover:not(:disabled) {
   border-color: var(--accent);
@@ -482,21 +619,22 @@ main {
   cursor: default;
 }
 
-/* ---- Mobile hardening (Phase 5) ----------------------------------------
-   Phones are the point of the multi-device design. Two concerns only:
-   spacing on narrow viewports, and touch targets on coarse pointers.
-   (Full accessibility pass is deferred beyond v1.) */
+/* ---- Touch hardening (Phase 5, retargeted at tablets in Phase 6) --------
+   Everyone plays on a tablet, laptop, or the projected surface; tablets are
+   touch, so targets stay >= 44px. (Full accessibility pass is deferred
+   beyond v1.) */
 
 @media (max-width: 600px) {
   header {
     padding: 12px 14px 10px;
   }
-  main {
+  main,
+  .play-layout {
     padding: 12px 14px;
     gap: 12px;
   }
   h1 {
-    font-size: 21px;
+    font-size: 24px;
   }
   .form-shell {
     margin: 28px 14px;
@@ -516,11 +654,6 @@ main {
     /* Four dials fit two-up; keeps each dial a comfortable tap size. */
     flex: 1 1 40%;
   }
-  .log-panel {
-    font-size: 15px;
-    min-height: 90px;
-    max-height: 170px;
-  }
 }
 
 @media (pointer: coarse) {
@@ -534,8 +667,8 @@ main {
     min-height: 44px;
   }
 
-  /* Hotspots are sized as % of the scene; the smallest are a few px on a
-     phone. Extend the *hit area* (not the visible highlight) to at least
+  /* Hotspots are sized as % of the scene; the smallest are tiny even on a
+     tablet. Extend the *hit area* (not the visible highlight) to at least
      44x44, centered on the hotspot, via an invisible pseudo-element. */
   .hotspot::before {
     content: "";

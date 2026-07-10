@@ -57,22 +57,29 @@ actions through the Phase 1 leg and the driver counts navigations on it to
 prove updates arrived via realtime, not reloads; the Phase 3 leg repeats the
 same trick with a "watcher" parked in the Vault while three other devices act
 in three different rooms; the Phase 4 leg spins up a second, fresh session to
-prove dm_grant_item unsticks a party that solved nothing. 52 checks;
-screenshots land in `verify-artifacts/` (gitignored). Extend it in place when
-new scenes/puzzles need coverage.
+prove dm_grant_item unsticks a party that solved nothing. Phase 6 checks are
+woven through the same flow: noise gauge on the DM console only, big BANG on
+the noise-maker's screen + small anonymous BANG on bystanders (armed with
+`waitForSelector` BEFORE the noisy click -- the burst only lives ~1.2s),
+the single-message latest panel + newest-first history rail, and the DM's
+±10 noise steppers. 62 checks; screenshots land in `verify-artifacts/`
+(gitignored). Extend it in place when new scenes/puzzles need coverage.
 
-There's a second, smaller driver for the Phase 5 mobile layout work:
+There's a second, smaller driver for layout/touch (built for the Phase 5
+phone pass, retargeted at tablets in Phase 6 -- phones are out of scope by
+design; play happens on tablets, laptops, and a projector):
 
 ```bash
 pnpm verify:mobile                # runs scripts/verify-mobile.mjs
 ```
 
-It replays the join flow on an emulated iPhone 13 (coarse pointer + touch)
-and measures the layout CSS directly: no horizontal overflow on any route,
-44px minimum controls, the expanded hotspot tap areas (`.hotspot::before`),
-dial wrap in the valve puzzle, and that taps actually drive the game. 13
-checks; same prerequisites as `verify:realtime`. Run it after touching
-`index.css` layout/touch rules or the hotspot layer.
+It replays the join flow on emulated iPads (portrait + landscape, coarse
+pointer + touch) and measures the layout CSS directly: no horizontal
+overflow on any route, 44px minimum controls, the expanded hotspot tap areas
+(`.hotspot::before`), the history rail stacking under the scene in portrait
+(<900px) vs sitting beside it in landscape, and that taps actually drive the
+game. 18 checks; same prerequisites as `verify:realtime`. Run it after
+touching `index.css` layout/touch rules or the hotspot layer.
 
 ## Gotcha #0: the Realtime cold-start gap (fixed app-side in Phase 5)
 

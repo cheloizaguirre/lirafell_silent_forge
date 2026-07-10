@@ -1,7 +1,8 @@
 import type { Condition } from "@silent-forge/content";
+import type { FlagValue } from "../lib/sessionApi";
 
 export interface EvalContext {
-  flags: Record<string, boolean | number | string>;
+  flags: Record<string, FlagValue>;
   inventory: string[];
 }
 
