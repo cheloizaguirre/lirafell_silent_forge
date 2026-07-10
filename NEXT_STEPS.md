@@ -1,6 +1,6 @@
 # Silent Forge — Progress & Next Manual Steps
 
-Status as of 2026-07-10. **Phases 1–6 are DONE and verified end-to-end through a real browser (`pnpm verify:realtime`, 62/62 — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads).** The full quest is playable start to finish: all of Stage 1 (Entrance, Workshop valves, Archive books, Gallery elimination, Vault placement, Prison escape) plus Stage 2 convergence (Spire arm lever at +35 noise, Workshop overflow vent, Archive lens realignment as a single-sigil-dial puzzle, and a server-validated `activate_convergence` that sets `won`). The Phase 3 acceptance bar was met literally: three devices flipped `armed`/`vented`/`aligned` from three different rooms while a fourth sat in the Vault watching the convergence runes light up over realtime with zero interactions, then threw the final switch itself. The DM console now has its full v1 override trio (per-player force-scene, grant-item, clear-noise), role-gated server-side and proven able to unstick a party that solved nothing. The Warden mechanic is DM-mediated: noise hitting 100 raises an alert on the DM console naming the offender — the DM narrates and decides (send someone to the cell / clear the noise); nothing happens automatically. That decision (2026-07-10) supersedes the original plan's auto-capture reading and pulled `dm_force_scene`/`dm_clear_noise` forward from Phase 4. Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
+Status as of 2026-07-10. **Phases 1–7 are DONE and verified end-to-end through a real browser (`pnpm verify:realtime`, 67/67 — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads).** The full quest is playable start to finish: all of Stage 1 (Entrance, Workshop valves, Archive books, Gallery elimination, Vault placement, Prison escape) plus Stage 2 convergence (Spire arm lever at +35 noise, Workshop overflow vent, Archive lens realignment as a single-sigil-dial puzzle, and a server-validated `activate_convergence` that sets `won`). The Phase 3 acceptance bar was met literally: three devices flipped `armed`/`vented`/`aligned` from three different rooms while a fourth sat in the Vault watching the convergence runes light up over realtime with zero interactions, then threw the final switch itself. The DM console now has its full v1 override trio (per-player force-scene, grant-item, clear-noise), role-gated server-side and proven able to unstick a party that solved nothing. The Warden mechanic is DM-mediated: noise hitting 100 raises an alert on the DM console naming the offender — the DM narrates and decides (send someone to the cell / clear the noise); nothing happens automatically. That decision (2026-07-10) supersedes the original plan's auto-capture reading and pulled `dm_force_scene`/`dm_clear_noise` forward from Phase 4. Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
 
 ## Current state: playable locally right now
 
@@ -17,15 +17,16 @@ Then open `http://localhost:5173/` in two different browsers (or one normal + on
 
 Local Supabase Studio (DB browser/table editor): `http://127.0.0.1:54323`
 
-## Next session: deploy
+## Where v1 stands / what's next
 
-All six build phases are done (Phase 6 was the polish pass added 2026-07-10: neutral dark theme, projection-scale type, split log, DM-facing noise + BANG bursts). The hosted deploy (below) is the only remaining v1 work, it's blocked on a manual `supabase login` step, and it's the real blocker for playing on other devices — everything so far runs against local Docker only, and a tablet can't reach `127.0.0.1:54321`.
+Seven build phases are done (Phase 6: polish — neutral dark theme, projection-scale type, split log, DM-facing noise + BANG bursts; Phase 7: v1 improvements — DM cheat-sheet, visible corner-exit chips + a way back to the Entrance Hall, auto-closing book puzzle). **Per user decision 2026-07-10, the hosted deploy moved to the END of v2** — v1 keeps improving locally against Docker. v2 candidates so far: 8-bit sprite art (analysis done, see `docs/sprite-art-analysis.md` — art production dominates, ~1–2 weeks vs ~1–2 days of engineering; prototype the Vault first), then the deploy last.
 
 ## What's NOT built yet
 
-- No hosted Supabase project yet — real multi-device (not just multi-browser-window) testing needs a hosted project + deployment to a phone-reachable URL. This is the next real blocker.
+- No hosted Supabase project — real multi-device (not just multi-browser-window) testing needs a hosted project + deployment to a device-reachable URL. **Deliberately deferred to the end of v2.**
+- Everything in the "explicitly deferred beyond v1" list at the bottom of the roadmap.
 
-## Manual step needed from you before deploying
+## Manual step needed from you before deploying (end of v2)
 
 `supabase login` opens a browser for OAuth — has to happen in your terminal, not Claude's. When you're ready to deploy (or just want real hosted Postgres instead of local Docker):
 
@@ -43,7 +44,8 @@ All six build phases are done (Phase 6 was the polish pass added 2026-07-10: neu
 ```
 apps/web/            Vite + React 19 + TS SPA — fully wired: routes, engine, Supabase client, realtime
 packages/content/     Zod content schemas + all 7 scenes / 4 puzzles — validates clean
-supabase/             config.toml + 5 migrations, tested end-to-end against local Docker Supabase
+supabase/             config.toml + 8 migrations, tested end-to-end against local Docker Supabase
+docs/                 sprite-art-analysis.md (v2 candidate assessment)
 .claude/skills/verify/  project verify skill — how to spin up + browser-test this repo (READ THIS before re-verifying anything)
 ```
 
@@ -57,7 +59,7 @@ supabase/             config.toml + 5 migrations, tested end-to-end against loca
 - `src/routes/` — `LandingPage`, `JoinPage`, `PlayPage`, `DmPage` (live state dump + the Warden alert panel + the Phase 4 overrides panel: per-player force-scene picker, grant-item buttons that disable once held, standalone clear-noise — the plan's v1 trio, nothing more).
 - `src/index.css` — originally the PoC's gothic-violet palette; since Phase 6 a neutral dark theme with purple as sparing highlight, projection-scale type, the split-log layout (latest panel + history rail), the DM-only noise gauge, and the BANG burst animations.
 
-**`supabase/migrations/`** — seven migrations, all tested against real local Postgres (not just reviewed):
+**`supabase/migrations/`** — eight migrations, all tested against real local Postgres (not just reviewed):
 - `20260709124635_init_schema.sql` — `sessions`, `players` (scene is **per-player**), `session_state` (flags/inventory/noise **party-shared**), `puzzle_attempts`. RLS + explicit table-level `GRANT SELECT` (see bug #1 below).
 - `20260709124636_rpc_actions.sql` — `create_session`, `join_session`, `set_current_scene`, `add_noise` (internal), `submit_puzzle_attempt` (Gallery's real answer `'butler'` lives here only). `#variable_conflict use_column` pragma on the two `RETURNS TABLE` functions (see bug #2 below).
 - `20260709181557_enable_realtime.sql` — adds `players`/`session_state` to the `supabase_realtime` publication with `REPLICA IDENTITY FULL` (see bug #3 below — this one was nasty).
@@ -65,6 +67,7 @@ supabase/             config.toml + 5 migrations, tested end-to-end against loca
 - `20260710150000_phase3_convergence.sql` — `arm_spire` (requires `allPlaced`, +35 noise, `FOR UPDATE` row lock so two simultaneous lever-heaves can't double-arm/double-noise), `vent_overflow` (requires `armed`), the `archive-lens` answer (`[2]` = ☉, dormant until `armed`) in `submit_puzzle_attempt` (whose item grant went conditional — aligning grants a flag, no item), and `activate_convergence` (re-checks `armed && vented && aligned` server-side, reports what's missing, sets `won`).
 - `20260710160000_phase4_dm_console.sql` — `dm_grant_item`, completing the role-gated DM trio. Granting sets the item's `*Found` flag too, mirroring the puzzle solve — without it the override wouldn't unstick anything (the Vault door gates on those flags). `placed*` stays untouched: placement is gameplay, not a grant.
 - `20260710190000_phase6_polish.sql` — noise attribution + DM steppers. `add_noise` now stamps `flags.noiseEvent = {seq, by, amount}` on every noise-raising call (seq is monotonic so clients can dedupe reconcile re-fetches; `by` is the actor's `players.id`, correct through the SECURITY DEFINER chain) — this drives the BANG bursts. `dm_adjust_noise(session, delta)` is the ±10 stepper RPC: role-gated, delta-based (two quick taps can't race a stale read), clamped 0–100; positive deltas route through `add_noise` (so DM-added noise BANGs on player screens and can trip the Warden), stepping down below 100 strips `wardenAlert`.
+- `20260710210000_phase7_dm_cheatsheet.sql` — `dm_get_solutions`, role-gated like the override trio. The cheat-sheet exists so the answers-only-in-RPCs invariant survives having a DM-facing solutions panel: answers still never ship in the client bundle; the DM console fetches them at runtime. If an answer changes in `submit_puzzle_attempt`, change it here too — these two places are the only ones.
 
 ### Three real bugs found by actually testing (not just reading the SQL)
 
@@ -95,6 +98,7 @@ Both environments are supported and both have been bootstrapped from scratch. Af
 
 ## Full roadmap (all build phases complete)
 
+- **Phase 7: DONE (2026-07-10).** v1 improvements (user-directed): (a) **DM cheat-sheet** — collapsed `<details>` panel on the console listing all four puzzle solutions + the Stage 2 order, fed by the role-gated `dm_get_solutions` RPC so the answers-only-in-RPCs invariant holds. (b) **Visible navigation** — the corner "Back to Workshop" exits were invisible 10%×10% hover regions (undiscoverable on touch/projector), and nothing led back to the Entrance Hall at all (true in the PoC too). Hotspots gained an optional `chip: true` (schema + `HotspotLayer`) rendering an always-visible labeled button; all four corner exits are chips, and the Workshop gained a "Back to Entrance Hall" chip. (c) **Book puzzle auto-closes on solve** — the payoff (tomes settling, inventory) happens in the scene, so the modal no longer sits in front of it. (d) **8-bit sprite analysis** written to `docs/sprite-art-analysis.md` (v2 candidate). Suite now 67/67.
 - **Phase 6: DONE (2026-07-10).** Polish pass (user-directed, planned after Phase 5): (a) **de-purple** — neutral dark theme in `index.css` AND the seven SVG scenes (structural hexes remapped to neutral grays that mirror the CSS variables — SVG presentation attributes don't substitute `var()`, see the SceneShell comment; purple survives only as highlight/magic: title, accent borders, hotspot glow, runes/beams/lit eyes). (b) **Projection typography** — 19px body base, 21px latest-message panel, 32px h1, `#root` widened to 1280px. Phones are explicitly out of scope now (tablets/laptops/projector only — supersedes the Phase 5 phone framing; the touch-target work carries over, `verify:mobile` retargeted to iPads portrait+landscape). (c) **Split log** — per-device as before, but rendered as a single big `.log-latest` message under the scene plus a newest-first `.log-bubble` history rail (rail sits right of the scene ≥900px, stacks below it under). (d) **Noise theater** — gauge is DM-only (players never see the meter), DM Overrides gained ±10 steppers, and `flags.noiseEvent` drives BANG bursts: big centered on your own noise, small anonymous corner burst for anyone else's (incl. DM-added noise). BANGs sit above the puzzle overlay (z 20) because wrong answers — the main noise source — happen with a modal open. Suite now 62/62 + 18 tablet layout checks.
 
 See the plan file for full detail — summary:

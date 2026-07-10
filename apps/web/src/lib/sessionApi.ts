@@ -122,6 +122,20 @@ export async function dmClearNoise(sessionId: string) {
   if (error) throw error;
 }
 
+export interface DmSolution {
+  title: string;
+  solution: string;
+  note: string;
+}
+
+// Role-gated server-side: answers live only in RPCs, and only the DM's
+// device can pull this sheet.
+export async function dmGetSolutions(sessionId: string) {
+  const { data, error } = await supabase.rpc("dm_get_solutions", { p_session_id: sessionId });
+  if (error) throw error;
+  return data as DmSolution[];
+}
+
 export async function dmAdjustNoise(sessionId: string, delta: number) {
   const { error } = await supabase.rpc("dm_adjust_noise", {
     p_session_id: sessionId,

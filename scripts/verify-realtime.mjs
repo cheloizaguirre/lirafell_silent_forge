@@ -58,6 +58,17 @@ const code = dm.url().split("/").pop();
 check("DM created session and landed on /dm/<code>", !!code, `code ${code}`);
 await dm.waitForSelector(".player-list li", { timeout: 15000 });
 
+// ---- Phase 7: the cheat sheet (role-gated RPC; answers never in the bundle).
+// Checked BEFORE the read-only marker below -- expanding <details> is a UI
+// action, and the zero-actions invariant starts after this point.
+await dm.locator(".dm-cheatsheet summary").click();
+const sheet = (await dm.locator(".dm-cheatsheet").textContent()) ?? "";
+check("DM cheat sheet lists every puzzle solution",
+  sheet.includes("Silent Butler") &&
+  sheet.includes("2 - 0 - 1 - 3") &&
+  sheet.includes("Violet -> Ash -> Ember") &&
+  sheet.includes("☉"));
+
 // From here on the DM page is READ-ONLY. Count any navigation/reload on it.
 let dmNavigations = 0;
 dm.on("framenavigated", (f) => {
@@ -86,9 +97,22 @@ check("DM console shows the noise gauge",
 await player.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
 await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*workshop/.test(t), "DM sees scene change to 'workshop' (realtime, no reload)");
 
+// ---- Phase 7: corner exits are visible chips, and the entrance isn't one-way
+const entranceChip = player.locator('button.hotspot-chip[aria-label="Back to Entrance Hall"]');
+check("Workshop shows a visible 'Back to Entrance Hall' chip",
+  (await entranceChip.count()) === 1 &&
+  ((await entranceChip.textContent()) ?? "").includes("Back to Entrance Hall"));
+await entranceChip.click();
+await player.waitForSelector('button.hotspot[aria-label="Great Door (enter workshop)"]', { timeout: 10000 });
+check("Chip navigates back to the Entrance Hall", true);
+await player.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
+await player.waitForSelector('button.hotspot[aria-label="Door to Gallery"]', { timeout: 10000 });
+
 // ---- Player moves: workshop -> gallery -------------------------------------
 await player.click('button.hotspot[aria-label="Door to Gallery"]');
 await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*gallery/.test(t), "DM sees scene change to 'gallery'");
+check("Gallery's 'Back to Workshop' exit is a visible chip",
+  (await player.locator('button.hotspot-chip[aria-label="Back to Workshop"]').count()) === 1);
 
 // ---- Player opens the puzzle, answers WRONG -> noise rises ------------------
 await player.click('button.hotspot[aria-label="Examine the Automatons"]');
@@ -185,7 +209,13 @@ for (const tome of ["Violet Tome", "Ash Tome", "Ember Tome"]) {
   await player.waitForTimeout(250);
 }
 await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => t.includes("lens"), "Correct tome sequence grants the Aether Lens");
-await player.getByRole("button", { name: "Close" }).click();
+// Phase 7: the sequence puzzle dismisses itself on solve -- the payoff
+// (tomes settling, inventory) happens in the scene, not behind a modal.
+const bookModalGone = await player
+  .waitForSelector(".puzzle-panel", { state: "detached", timeout: 10000 })
+  .then(() => true)
+  .catch(() => false);
+check("Book puzzle auto-closed after the third correct tome", bookModalGone);
 
 // ---- Vault: all three components found -> door open -> place them -----------
 await player.click('button.hotspot[aria-label="Back to Workshop"]');

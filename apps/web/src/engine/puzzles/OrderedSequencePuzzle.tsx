@@ -21,7 +21,6 @@ export function OrderedSequencePuzzle({
   );
   const [picked, setPicked] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
-  const [solved, setSolved] = useState(false);
 
   if (!puzzle) return null;
 
@@ -42,9 +41,12 @@ export function OrderedSequencePuzzle({
     try {
       const result = await submitPuzzleAttempt(sessionId, puzzleId, { sequence: next });
       if (result.correct) {
-        setSolved(true);
         log(puzzle.solvedText ?? "Something clicks into alignment.", "system");
         onSolved();
+        // Close immediately: the payoff (tomes settling, inventory updating,
+        // the narration in the latest panel) happens in the scene behind
+        // this modal -- don't make the player dismiss it to see any of that.
+        onClose();
       } else {
         log(puzzle.wrongText ?? "Nothing happens, and everything resets.", "flavor");
         setPicked([]);
@@ -65,7 +67,7 @@ export function OrderedSequencePuzzle({
               key={item.id}
               type="button"
               className="puzzle-option"
-              disabled={pending || solved || picked.includes(item.id)}
+              disabled={pending || picked.includes(item.id)}
               onClick={() => void handlePick(item.id)}
             >
               {item.label}
@@ -76,14 +78,12 @@ export function OrderedSequencePuzzle({
           ))}
         </div>
         <p className="puzzle-sequence-status">
-          {solved
-            ? "The sequence holds."
-            : picked.length === 0
-              ? `Choose ${puzzle.sequenceLength} in order.`
-              : `Chosen: ${picked.map(labelFor).join(" → ")}`}
+          {picked.length === 0
+            ? `Choose ${puzzle.sequenceLength} in order.`
+            : `Chosen: ${picked.map(labelFor).join(" → ")}`}
         </p>
         <button type="button" className="puzzle-close" onClick={onClose}>
-          {solved ? "Close" : "Step back"}
+          Step back
         </button>
       </div>
     </div>

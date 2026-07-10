@@ -76,6 +76,19 @@ export const scenes: Scene[] = [
     art: { component: "WorkshopArt" },
     hotspots: [
       {
+        // Not in the PoC (which had no way back at all) -- added in Phase 7
+        // so the entrance isn't a one-way door. Same corner-chip convention
+        // as the rooms' "Back to Workshop".
+        id: "back-to-entrance",
+        label: "Back to Entrance Hall",
+        x: 2,
+        y: 2,
+        w: 10,
+        h: 10,
+        chip: true,
+        actions: [{ type: "navigate", sceneId: "entrance" }],
+      },
+      {
         id: "dormant-warden",
         label: "The Dormant Warden",
         x: 7,
@@ -256,7 +269,8 @@ export const scenes: Scene[] = [
         y: 2,
         w: 10,
         h: 10,
-        actions: [{ type: "navigate", sceneId: "workshop" }],
+        chip: true,
+actions: [{ type: "navigate", sceneId: "workshop" }],
       },
       {
         id: "automaton-displays",
@@ -298,7 +312,8 @@ export const scenes: Scene[] = [
         y: 2,
         w: 10,
         h: 10,
-        actions: [{ type: "navigate", sceneId: "workshop" }],
+        chip: true,
+actions: [{ type: "navigate", sceneId: "workshop" }],
       },
       {
         id: "colored-tomes",
@@ -396,7 +411,8 @@ export const scenes: Scene[] = [
         y: 2,
         w: 10,
         h: 10,
-        actions: [{ type: "navigate", sceneId: "workshop" }],
+        chip: true,
+actions: [{ type: "navigate", sceneId: "workshop" }],
       },
       {
         id: "socket-heart",
@@ -496,7 +512,8 @@ export const scenes: Scene[] = [
         y: 2,
         w: 10,
         h: 10,
-        actions: [{ type: "navigate", sceneId: "workshop" }],
+        chip: true,
+actions: [{ type: "navigate", sceneId: "workshop" }],
       },
       // Three mutually exclusive lever states. The !allPlaced variant is
       // unreachable in normal play (the Spire stair only opens at allPlaced)
