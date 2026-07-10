@@ -110,6 +110,14 @@ export async function dmClearNoise(sessionId: string) {
   if (error) throw error;
 }
 
+export async function dmGrantItem(sessionId: string, itemId: string) {
+  const { error } = await supabase.rpc("dm_grant_item", {
+    p_session_id: sessionId,
+    p_item_id: itemId,
+  });
+  if (error) throw error;
+}
+
 // Finds the current auth user's existing players row across ANY active
 // session, so a reloaded tab can resume without asking for a name/code again.
 export async function findExistingPlayerRow(userId: string): Promise<PlayerRow | null> {

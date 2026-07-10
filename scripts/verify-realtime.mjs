@@ -196,11 +196,11 @@ for (const [who, pg] of [["VENTER", venter], ["WATCHER", watcher], ["ALIGNER", a
   pg.on("pageerror", (e) => errors.push(`${who} pageerror: ${e.message}`));
 }
 
-async function joinAs(pg, name) {
-  await pg.goto(`${BASE}/join/${code}`, { waitUntil: "networkidle" });
+async function joinAs(pg, name, joinCode = code) {
+  await pg.goto(`${BASE}/join/${joinCode}`, { waitUntil: "networkidle" });
   await pg.fill("#join-name", name);
   await pg.getByRole("button", { name: /^Join$/ }).click();
-  await pg.waitForURL(new RegExp(`/play/${code}$`), { timeout: 15000 });
+  await pg.waitForURL(new RegExp(`/play/${joinCode}$`), { timeout: 15000 });
 }
 await joinAs(venter, "Player Three");
 await joinAs(watcher, "Player Four");
@@ -292,9 +292,75 @@ check("Watcher sees the victory narration", wonLog.includes("magic has returned 
 check("Convergence hotspot is gone after the win",
   (await watcher.locator('button.hotspot[aria-label="Activate the Convergence"]').count()) === 0);
 
+// ============================================================================
+// Phase 4 leg. The DM overrides panel: force scene / clear noise / grant item.
+// Force-scene and clear-noise run against the finished session; the grant test
+// gets a FRESH session (this one already holds every item) where a stuck party
+// is unstuck by grants alone -- no puzzles solved.
+// ============================================================================
+
+// ---- Force scene from the roster, no Warden alert involved ------------------
+await dm.locator("#dm-move-player").selectOption({ label: "Player Three" });
+await dm.locator("#dm-move-scene").selectOption({ label: "Gallery of Automatons" });
+await dm.getByRole("button", { name: "Move player" }).click();
+await venter.waitForSelector('button.hotspot[aria-label="Examine the Automatons"]', { timeout: 15000 });
+check("DM's Move player pulled Player Three into the Gallery (no action on their device)", true);
+await waitForDm(dm, ".player-list", (t) => /Player Three[\s\S]*gallery/.test(t), "Roster shows Player Three in 'gallery'");
+
+// ---- Standalone clear-noise (the 35 from arming the Spire) ------------------
+await dm.getByRole("button", { name: "Clear noise (35)" }).click();
+await waitForDm(dm, noiseTile, (t) => /Noise\s*0(?!\d)/.test(t), "Standalone clear-noise resets party noise to 0");
+
+// ---- Grant buttons are inert when the party already holds everything --------
+check("Grant buttons are disabled for items already held",
+  await dm.getByRole("button", { name: "Cogwork Heart" }).isDisabled());
+
+// ---- Fresh session: a stuck party is unstuck by grants alone ----------------
+const ctxF = await browser.newContext();
+const ctxG = await browser.newContext();
+const dm2 = await ctxF.newPage();
+const stuck = await ctxG.newPage();
+for (const [who, pg] of [["DM2", dm2], ["STUCK", stuck]]) {
+  pg.on("console", (m) => m.type() === "error" && errors.push(`${who}: ${m.text()}`));
+  pg.on("pageerror", (e) => errors.push(`${who} pageerror: ${e.message}`));
+}
+
+await dm2.goto(BASE, { waitUntil: "networkidle" });
+await dm2.fill("#display-name", "DM Redux");
+await dm2.getByRole("button", { name: /Start a new quest/i }).click();
+await dm2.waitForURL(/\/dm\/[A-Z0-9]{6}$/, { timeout: 15000 });
+const code2 = dm2.url().split("/").pop();
+check("Second session created for the grant test", !!code2 && code2 !== code, `code ${code2}`);
+
+await joinAs(stuck, "Stuck Player", code2);
+await stuck.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
+await stuck.waitForSelector('button.hotspot[aria-label="Vault Door"]', { timeout: 10000 });
+
+for (const item of ["Cogwork Heart", "Aether Lens", "Pressure Valve Key"]) {
+  await dm2.getByRole("button", { name: item }).click();
+  await dm2.waitForTimeout(250);
+}
+await waitForDm(dm2, ".objective:has(b:text-is('Inventory'))",
+  (t) => t.includes("heart") && t.includes("lens") && t.includes("valve"),
+  "dm_grant_item stocked the fresh party's inventory");
+await waitForDm(dm2, ".objective:has(b:text-is('Flags'))",
+  (t) => t.includes("heartFound") && t.includes("lensFound") && t.includes("valveFound"),
+  "Grants set the *Found flags exactly like real solves");
+
+// Wait for the grants to reach the stuck player's client before touching the
+// Vault Door -- the sealed and open variants share a label, so clicking early
+// would hit the sealed one and just log flavor text.
+await waitForDm(stuck, ".objective",
+  (t) => t.includes("heart") && t.includes("lens") && t.includes("valve"),
+  "Stuck player's inventory filled up via realtime");
+await stuck.click('button.hotspot[aria-label="Vault Door"]');
+await stuck.waitForSelector('button.hotspot[aria-label="Place Cogwork Heart"]', { timeout: 10000 });
+check("Granted flags opened the Vault door -- party unstuck without solving anything", true);
+
 await dm.screenshot({ path: `${OUT}dm-console-live.png`, fullPage: true });
 await player.screenshot({ path: `${OUT}player-spire.png`, fullPage: true });
 await watcher.screenshot({ path: `${OUT}watcher-vault-won.png`, fullPage: true });
+await dm2.screenshot({ path: `${OUT}dm2-console-grants.png`, fullPage: true });
 console.log(`\nscreenshots: ${OUT}`);
 
 if (errors.length) {

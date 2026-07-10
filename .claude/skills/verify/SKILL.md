@@ -56,8 +56,10 @@ multi-device play: a DM plus four players by the end. The DM page takes zero
 actions through the Phase 1 leg and the driver counts navigations on it to
 prove updates arrived via realtime, not reloads; the Phase 3 leg repeats the
 same trick with a "watcher" parked in the Vault while three other devices act
-in three different rooms. 43 checks; screenshots land in `verify-artifacts/`
-(gitignored). Extend it in place when new scenes/puzzles need coverage.
+in three different rooms; the Phase 4 leg spins up a second, fresh session to
+prove dm_grant_item unsticks a party that solved nothing. 52 checks;
+screenshots land in `verify-artifacts/` (gitignored). Extend it in place when
+new scenes/puzzles need coverage.
 
 ## Gotcha #0: warm up Realtime before trusting a failed run
 

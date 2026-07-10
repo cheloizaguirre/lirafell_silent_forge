@@ -421,3 +421,60 @@ main {
 .player-list b {
   color: var(--text);
 }
+
+.dm-overrides {
+  background: var(--shadow2);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 2px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dm-overrides h2 {
+  font-family: "Cinzel", serif;
+  color: var(--accent-bright);
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0;
+}
+.dm-override-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.dm-override-row label,
+.dm-override-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+.dm-override-row select {
+  background: var(--shadow);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 7px 8px;
+  border-radius: 4px;
+  font-family: "EB Garamond", serif;
+  font-size: 14px;
+}
+.dm-override-row button {
+  background: var(--shadow2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "EB Garamond", serif;
+  font-size: 14px;
+}
+.dm-override-row button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-bright);
+}
+.dm-override-row button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
