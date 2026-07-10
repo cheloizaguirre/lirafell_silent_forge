@@ -62,11 +62,11 @@ export function NumericDialPuzzle({
               type="button"
               className="puzzle-option puzzle-dial"
               disabled={pending || solved}
-              aria-label={`${dial.label}, currently ${values[i]}`}
+              aria-label={`${dial.label}, currently ${dial.valueLabels?.[values[i]] ?? values[i]}`}
               onClick={() => cycleDial(i)}
             >
               <span className="puzzle-dial-label">{dial.label}</span>
-              <span className="puzzle-dial-value">{values[i]}</span>
+              <span className="puzzle-dial-value">{dial.valueLabels?.[values[i]] ?? values[i]}</span>
             </button>
           ))}
         </div>

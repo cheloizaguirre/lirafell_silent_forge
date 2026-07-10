@@ -1,6 +1,6 @@
 # Silent Forge — Progress & Next Manual Steps
 
-Status as of 2026-07-10. **Phases 1 AND 2 are DONE and verified end-to-end through a real browser with two simulated devices (`pnpm verify:realtime`, 24/24).** All of Stage 1 is playable: Entrance, Workshop (valve puzzle), Archive (book puzzle), Gallery (elimination puzzle), Vault (component placement), Prison Cell (grate escape). The Warden mechanic is DM-mediated: noise hitting 100 raises an alert on the DM console naming the offender — the DM narrates and decides (send someone to the cell / clear the noise); nothing happens automatically. That decision (2026-07-10) supersedes the original plan's auto-capture reading and pulled `dm_force_scene`/`dm_clear_noise` forward from Phase 4. Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
+Status as of 2026-07-10. **Phases 1, 2 AND 3 are DONE and verified end-to-end through a real browser (`pnpm verify:realtime`, 43/43 — five simulated devices by the final leg).** The full quest is playable start to finish: all of Stage 1 (Entrance, Workshop valves, Archive books, Gallery elimination, Vault placement, Prison escape) plus Stage 2 convergence (Spire arm lever at +35 noise, Workshop overflow vent, Archive lens realignment as a single-sigil-dial puzzle, and a server-validated `activate_convergence` that sets `won`). The Phase 3 acceptance bar was met literally: three devices flipped `armed`/`vented`/`aligned` from three different rooms while a fourth sat in the Vault watching the convergence runes light up over realtime with zero interactions, then threw the final switch itself. The Warden mechanic is DM-mediated: noise hitting 100 raises an alert on the DM console naming the offender — the DM narrates and decides (send someone to the cell / clear the noise); nothing happens automatically. That decision (2026-07-10) supersedes the original plan's auto-capture reading and pulled `dm_force_scene`/`dm_clear_noise` forward from Phase 4. Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
 
 ## Current state: playable locally right now
 
@@ -13,23 +13,22 @@ Both Arch/CachyOS and macOS are supported dev environments. If either command
 misbehaves, the per-OS quirks live in the verify skill's Environment notes —
 notably, `supabase start` needs `-x vector -x analytics` on macOS under Colima.
 
-Then open `http://localhost:5173/` in two different browsers (or one normal + one incognito window — they need separate localStorage to act as separate "devices"). Create a session as DM in one, join with the code in the other. All six Stage 1 scenes are playable with server-validated puzzles; crank noise to 100 to see the DM-side Warden alert flow.
+Then open `http://localhost:5173/` in two different browsers (or one normal + one incognito window — they need separate localStorage to act as separate "devices"). Create a session as DM in one, join with the code in the other. All seven scenes are playable with server-validated puzzles, from the Entrance through the final convergence (`won`); crank noise to 100 to see the DM-side Warden alert flow.
 
 Local Supabase Studio (DB browser/table editor): `http://127.0.0.1:54323`
 
-## Next session: Phase 3 (Stage 2 convergence)
+## Next session: Phase 4 (DM console overrides)
 
 Everything here is buildable against local Docker; no manual steps block it. Concrete pointers so the next session doesn't re-derive them:
 
-- **What it is** (approved plan, Phase 3): Spire scene + arm lever (loud: +35 noise), Workshop overflow-valve vent, Archive lens realignment, then a server-validated `activate_convergence` that re-checks `armed && vented && aligned` server-side. Acceptance test: three devices acting in three rooms simultaneously while a fourth watches the Vault objective update live — this, not the two-tab test, is the real multi-device bar.
-- **PoC reference** (`silent_forge(1).html` at repo root, gitignored): Spire scene 594–625, Workshop overflow valve 353–364 + Spire-stair hotspot 350–352 (gated on `allPlaced`), Archive lens rotate/lock 466–481, Vault convergence hotspot 562–577. Symbols array + `SPIRE_SYMBOL_INDEX = 2` (☉) at 131–132 — the alignment answer, server-side only like all answers.
-- **Existing hooks to build on:** `activateConvergence` action type exists, dispatcher stub at `apps/web/src/engine/actionDispatch.ts` says "not built yet". The lens realignment is a single-dial `numeric-dial` puzzle variant per the approved plan (schema already supports 1 dial). `dm_force_scene`/`dm_clear_noise` show the RPC patterns; `armed`/`vented`/`aligned` are ordinary `session_state.flags` set by new RPCs (arming adds 35 noise — reuse `add_noise`, which also gives the Warden alert for free). `SpireArt` needs creating + registering in `sceneRegistry.ts`; Workshop's Spire-stair and overflow-valve hotspots are flag-gated via existing `visibleWhen` conditions (WorkshopArt already renders the armed/vented/allPlaced visuals — built ahead in Phase 1).
-- **Verify:** extend `scripts/verify-realtime.mjs` with a Phase 3 leg (a third browser context for the convergence test). Remember Gotcha #0 (cold-start rerun) after any `supabase db reset`.
+- **What it is** (approved plan, Phase 4): the DM console's general override surface. Two of the three override RPCs already exist and are role-gated server-side (`dm_force_scene` — deliberately generic, any player → any scene — and `dm_clear_noise`, both in `20260710093000_phase2_content.sql`, wrappers already in `sessionApi.ts`); today they're only reachable through the Warden-alert panel. Remaining work: a `dm_grant_item` RPC (same role-gate pattern), plus DmPage UI — per-player force-scene picker, standalone clear-noise button, grant-item buttons (`heart`/`lens`/`valve`).
+- **Where it attaches:** `apps/web/src/routes/DmPage.tsx` — the live state dump + Warden alert panel is the foundation; the plan (v1 DM view) caps scope at exactly three controls: force scene, clear noise, grant item. No more than that for v1.
+- **Verify:** extend `scripts/verify-realtime.mjs` with a Phase 4 leg (e.g. DM grants an item to a fresh session and force-scenes a player somewhere arbitrary like the Spire pre-`allPlaced` — the `great-lever-stuck` hotspot exists for exactly that case). Remember Gotcha #0 (cold-start rerun) after any `supabase db reset`.
+- **After Phase 4:** Phase 5 hardening (the realtime cold-start/reconnect re-reconcile, mobile layout) — or skip ahead to the hosted-deploy manual steps below, which are the real blocker for playing on phones.
 
 ## What's NOT built yet (see full roadmap below)
 
-- **Phase 3 (Stage 2 convergence)** — see the section above.
-- DM console has its first two actions (Warden alert: force-to-prison, clear noise) — the grant-item override and a general force-scene UI are still Phase 4.
+- **Phase 4 (DM console overrides)** — see the section above.
 - No hosted Supabase project yet — everything above runs against local Docker only. A phone can't reach `127.0.0.1:54321`, so real multi-device (not just multi-browser-window) testing needs a hosted project + deployment. This is the next real blocker.
 
 ## Manual step needed from you before deploying
@@ -49,26 +48,27 @@ Everything here is buildable against local Docker; no manual steps block it. Con
 **Repo structure:**
 ```
 apps/web/            Vite + React 19 + TS SPA — fully wired: routes, engine, Supabase client, realtime
-packages/content/     Zod content schemas + all 6 Stage 1 scenes / 3 puzzles — validates clean
-supabase/             config.toml + 4 migrations, tested end-to-end against local Docker Supabase
+packages/content/     Zod content schemas + all 7 scenes / 4 puzzles — validates clean
+supabase/             config.toml + 5 migrations, tested end-to-end against local Docker Supabase
 .claude/skills/verify/  project verify skill — how to spin up + browser-test this repo (READ THIS before re-verifying anything)
 ```
 
-**`packages/content`** — schemas for condition/action/hotspot/puzzle/scene, content for all of Stage 1: Entrance, Workshop (valve puzzle), Archive (book puzzle), Gallery (elimination puzzle), Vault (placement), Prison (grate escape). Notable refinement over the original plan: hotspots carry `actions: Action[]` (array, not singular) because most PoC click handlers do more than one thing; `showText` actions gained both `onlyIfFlagUnset` AND `onlyIfFlagSet` (needed for "first read vs. repeat read" note text — caught this gap while building the dispatcher, not while writing content). Puzzle answers are never in this package — see RPCs.
+**`packages/content`** — schemas for condition/action/hotspot/puzzle/scene, content for all seven scenes: Entrance, Workshop (valve puzzle + Stage 2 overflow valve/Spire stair), Archive (book puzzle + Stage 2 lens realignment), Gallery (elimination puzzle), Vault (placement + convergence), Spire (arm lever), Prison (grate escape). Stage 2 additions: `armSpire`/`ventOverflow` action types, `activateConvergence` gained its narration fields (success/resist/missing texts — the *verdict* on what's missing always comes from the server), and dials gained optional `valueLabels` so the lens puzzle shows sigils instead of digits. Notable refinement over the original plan: hotspots carry `actions: Action[]` (array, not singular) because most PoC click handlers do more than one thing; `showText` actions gained both `onlyIfFlagUnset` AND `onlyIfFlagSet` (needed for "first read vs. repeat read" note text — caught this gap while building the dispatcher, not while writing content). Puzzle answers are never in this package — see RPCs.
 
-**`apps/web`** — fully wired for Stage 1 (Phases 1+2):
+**`apps/web`** — fully wired for Stages 1+2 (Phases 1–3):
 - `src/lib/` — Supabase client, anonymous-auth helper (`ensureAnonymousSession`), typed RPC/table wrappers (`sessionApi.ts`).
 - `src/state/` — Zustand store (`useSessionStore`) + the realtime subscription hook (`useSessionState`) that's the actual crux of multi-device sync. Local-only `localFlags` set for cosmetic "have I seen this text" bookkeeping (deliberately NOT synced to `session_state.flags` — only puzzle RPCs may write real party-shared flags, to avoid needing a generically-abusable set-any-flag RPC).
-- `src/engine/` — `conditions.ts`, `sceneRegistry.ts`, `SceneRenderer.tsx`, `HotspotLayer.tsx`, `actionDispatch.ts` (placeItem/repeatClick/escapePrison implemented; activateConvergence still stubbed), `puzzles/` (Elimination, NumericDial, OrderedSequence — one component per kind).
-- `src/scenes/` — art components for all six scenes (ported verbatim from the PoC's inline SVG), `SceneShell.tsx` (shared defs/gradients). `SpireArt` is Phase 3.
+- `src/engine/` — `conditions.ts`, `sceneRegistry.ts`, `SceneRenderer.tsx`, `HotspotLayer.tsx`, `actionDispatch.ts` (all action types implemented, incl. armSpire/ventOverflow/activateConvergence), `puzzles/` (Elimination, NumericDial, OrderedSequence — one component per kind; NumericDial renders `valueLabels` sigils when present).
+- `src/scenes/` — art components for all seven scenes (ported verbatim from the PoC's inline SVG), `SceneShell.tsx` (shared defs/gradients). `VaultArt` grew the three convergence runes (`data-converge`/`data-lit` attrs exist for the verify script) + the won state; `ArchiveArt` shows the Spire beam while armed and a steady beam once aligned.
 - `src/routes/` — `LandingPage`, `JoinPage`, `PlayPage`, `DmPage` (live state dump + the Warden alert panel — its first write surface).
 - `src/index.css` — full palette/layout ported from the PoC (gothic violet theme, hotspot hover states, puzzle modal, noise gauge).
 
-**`supabase/migrations/`** — four migrations, all tested against real local Postgres (not just reviewed):
+**`supabase/migrations/`** — five migrations, all tested against real local Postgres (not just reviewed):
 - `20260709124635_init_schema.sql` — `sessions`, `players` (scene is **per-player**), `session_state` (flags/inventory/noise **party-shared**), `puzzle_attempts`. RLS + explicit table-level `GRANT SELECT` (see bug #1 below).
 - `20260709124636_rpc_actions.sql` — `create_session`, `join_session`, `set_current_scene`, `add_noise` (internal), `submit_puzzle_attempt` (Gallery's real answer `'butler'` lives here only). `#variable_conflict use_column` pragma on the two `RETURNS TABLE` functions (see bug #2 below).
 - `20260709181557_enable_realtime.sql` — adds `players`/`session_state` to the `supabase_realtime` publication with `REPLICA IDENTITY FULL` (see bug #3 below — this one was nasty).
 - `20260710093000_phase2_content.sql` — valve/book answers, `place_item`, `escape_prison`, the Warden-alert write in `add_noise` (`flags.wardenAlert`, no auto-capture), and the first two role-gated DM RPCs (`dm_force_scene`, `dm_clear_noise`).
+- `20260710150000_phase3_convergence.sql` — `arm_spire` (requires `allPlaced`, +35 noise, `FOR UPDATE` row lock so two simultaneous lever-heaves can't double-arm/double-noise), `vent_overflow` (requires `armed`), the `archive-lens` answer (`[2]` = ☉, dormant until `armed`) in `submit_puzzle_attempt` (whose item grant went conditional — aligning grants a flag, no item), and `activate_convergence` (re-checks `armed && vented && aligned` server-side, reports what's missing, sets `won`).
 
 ### Three real bugs found by actually testing (not just reading the SQL)
 
@@ -97,11 +97,11 @@ Both environments are supported and both have been bootstrapped from scratch. Af
 
 **Historical note:** an early `pnpm create vite@latest --version` accidentally scaffolded a throwaway `vite-project/` at the repo root (the `--version` flag didn't short-circuit as expected) — cleaned up before it got committed to anything.
 
-## Full remaining roadmap (Phases 2–5)
+## Full remaining roadmap (Phases 4–5)
 
 See the plan file for full detail — summary:
 - **Phase 2: DONE (2026-07-10).** `NumericDialPuzzle` (Workshop valves, target `[2,0,1,3]`), `OrderedSequencePuzzle` (Archive books, target `['violet','ash','ember']`, full-sequence validation — one server check per completed triple, not per click), Vault item-placement (`place_item` RPC, `placed*`/`allPlaced` flags), Prison Cell (repeat-click grate → `escape_prison` RPC, resets party noise). Warden mechanic is DM-mediated (see top of this doc) via `dm_force_scene`/`dm_clear_noise` — role-gated server-side, reusable as-is in Phase 4.
-- **Phase 3:** Stage 2 convergence — Spire arm/vent/align flags, the real multi-device stress test (3 devices in 3 rooms simultaneously, a 4th watching the Vault objective update live).
+- **Phase 3: DONE (2026-07-10).** Stage 2 convergence — Spire scene + `arm_spire` (+35 noise), Workshop overflow vent, Archive lens sigil dial, server-validated `activate_convergence` → `won`. Acceptance test passed as written: Players Two/Three/Five acted in Spire/Workshop/Archive while Player Four sat in the Vault watching the runes light up via realtime (zero interactions, zero reloads), then activated the convergence. Verify suite now 43/43 across five devices.
 - **Phase 4:** DM console override actions — force-scene/clear-noise/grant-item RPCs, role-gated (the read-only view already built is the foundation these attach to).
 - **Phase 5:** hardening — realtime reconnect reconciliation (partially done — `useSessionState` re-fetches on every `SUBSCRIBED` event already, but that doesn't cover the **Realtime cold-start gap**: the service acks `SUBSCRIBED` before its change-feed worker is consuming, and events fired in the first seconds are lost silently — see Gotcha #0 in the verify skill, reproduced deterministically 2026-07-10. Fix idea: one extra delayed re-reconcile a few seconds after `SUBSCRIBED`, which also covers flaky-wifi reconnects on phones), responsive/mobile layout pass.
 

@@ -177,8 +177,124 @@ for (const socket of ["Place Cogwork Heart", "Place Aether Lens", "Place Pressur
 }
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("allPlaced"), "All three placements set allPlaced on the party state");
 
+// ============================================================================
+// Phase 3 leg. Stage 2 convergence — the real multi-device bar: three devices
+// act in three different rooms (Spire / Workshop / Archive) while a fourth,
+// parked in the Vault, watches the convergence runes light up with zero
+// interactions. Continues from Phase 2 state: Player Two in the Vault,
+// allPlaced set, noise 0.
+// ============================================================================
+
+const ctxC = await browser.newContext();
+const ctxD = await browser.newContext();
+const ctxE = await browser.newContext();
+const venter = await ctxC.newPage(); // Player Three — Workshop overflow valve
+const watcher = await ctxD.newPage(); // Player Four — Vault, read-only observer
+const aligner = await ctxE.newPage(); // Player Five — Archive lens
+for (const [who, pg] of [["VENTER", venter], ["WATCHER", watcher], ["ALIGNER", aligner]]) {
+  pg.on("console", (m) => m.type() === "error" && errors.push(`${who}: ${m.text()}`));
+  pg.on("pageerror", (e) => errors.push(`${who} pageerror: ${e.message}`));
+}
+
+async function joinAs(pg, name) {
+  await pg.goto(`${BASE}/join/${code}`, { waitUntil: "networkidle" });
+  await pg.fill("#join-name", name);
+  await pg.getByRole("button", { name: /^Join$/ }).click();
+  await pg.waitForURL(new RegExp(`/play/${code}$`), { timeout: 15000 });
+}
+await joinAs(venter, "Player Three");
+await joinAs(watcher, "Player Four");
+await joinAs(aligner, "Player Five");
+check("Players Three/Four/Five joined as separate devices", true);
+
+// ---- Position everyone: Workshop / Vault / Archive --------------------------
+await venter.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
+await venter.waitForSelector('button.hotspot[aria-label="Door to Archive"]', { timeout: 10000 });
+check("Venter has NO Overflow Valve hotspot before the Spire is armed",
+  (await venter.locator('button.hotspot[aria-label="Overflow Valve"]').count()) === 0);
+
+await watcher.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
+await watcher.click('button.hotspot[aria-label="Vault Door"]');
+await watcher.waitForSelector('button.hotspot[aria-label="Activate the Convergence"]', { timeout: 10000 });
+check("Watcher sees the convergence hotspot (allPlaced, not won)", true);
+check("Watcher sees all three convergence runes dim",
+  (await watcher.locator('[data-converge][data-lit="false"]').count()) === 3);
+
+await aligner.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
+await aligner.click('button.hotspot[aria-label="Door to Archive"]');
+await aligner.waitForSelector('button.hotspot[aria-label="Memory Imprint Lens"]', { timeout: 10000 });
+check("Aligner has NO Realign the Lens hotspot before the Spire is armed",
+  (await aligner.locator('button.hotspot[aria-label="Realign the Lens"]').count()) === 0);
+
+// ---- Premature activation: server refuses, names everything missing ---------
+await watcher.click('button.hotspot[aria-label="Activate the Convergence"]');
+await watcher.waitForSelector(".log-panel .log-warn", { timeout: 10000 });
+const resistText = (await watcher.locator(".log-panel").textContent()) ?? "";
+check("Premature convergence is refused with all three parts named",
+  resistText.includes("The convergence resists") &&
+  resistText.includes("Spire mechanism") &&
+  resistText.includes("Workshop pressure") &&
+  resistText.includes("Archive lens"));
+
+// From here until the runes are lit, the watcher takes ZERO actions.
+let watcherNavigations = 0;
+watcher.on("framenavigated", (f) => {
+  if (f === watcher.mainFrame()) watcherNavigations += 1;
+});
+
+// ---- Room 1 (Spire): Player Two arms the great lever — LOUD ----------------
+await player.click('button.hotspot[aria-label="Back to Workshop"]');
+await player.waitForSelector('button.hotspot[aria-label="Stairwell to the Spire"]', { timeout: 10000 });
+check("Spire stairwell opened in the Workshop once allPlaced", true);
+await player.click('button.hotspot[aria-label="Stairwell to the Spire"]');
+await player.waitForSelector('button.hotspot[aria-label="Great Lever"]', { timeout: 10000 });
+await player.click('button.hotspot[aria-label="Great Lever"]');
+await waitForDm(dm, noiseTile, (t) => /Noise\s*35/.test(t), "Arming the Spire costs 35 noise (it was LOUD)");
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("armed"), "DM sees 'armed' flag set");
+
+// ---- Room 2 (Workshop): overflow valve APPEARS via realtime, venter vents ---
+await venter.waitForSelector('button.hotspot[aria-label="Overflow Valve"]', { timeout: 15000 });
+check("Overflow Valve hotspot appeared on the venter's screen via realtime", true);
+await venter.click('button.hotspot[aria-label="Overflow Valve"]');
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("vented"), "DM sees 'vented' flag set");
+
+// ---- Room 3 (Archive): realign hotspot APPEARS via realtime, aligner aligns -
+await aligner.waitForSelector('button.hotspot[aria-label="Realign the Lens"]', { timeout: 15000 });
+check("Realign the Lens hotspot appeared on the aligner's screen via realtime", true);
+await aligner.click('button.hotspot[aria-label="Realign the Lens"]');
+await aligner.waitForSelector(".puzzle-panel", { timeout: 10000 });
+// Wrong sigil first (dial starts at ✦): quiet failure, no noise.
+await aligner.getByRole("button", { name: "Lock Alignment" }).click();
+await aligner.waitForTimeout(400);
+const dmNoiseAfterMiss = (await dm.locator(noiseTile).textContent()) ?? "";
+check("Wrong sigil is quiet: noise still 35", /Noise\s*35/.test(dmNoiseAfterMiss));
+// Two clicks: ✦ -> ☾ -> ☉, then lock.
+await aligner.locator(".puzzle-dial").click();
+await aligner.locator(".puzzle-dial").click();
+await aligner.getByRole("button", { name: "Lock Alignment" }).click();
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("aligned"), "DM sees 'aligned' flag set");
+await aligner.getByRole("button", { name: "Close" }).click();
+
+// ---- The watcher's Vault lit up rune by rune, hands off the whole time ------
+for (const flag of ["armed", "vented", "aligned"]) {
+  await watcher.waitForSelector(`[data-converge="${flag}"][data-lit="true"]`, { timeout: 15000 });
+}
+check("Watcher's three convergence runes all lit via realtime", true);
+check("Watcher took zero navigations/reloads while three rooms acted", watcherNavigations === 0,
+  `${watcherNavigations} navigation(s)`);
+
+// ---- Convergence: the watcher throws the final switch ------------------------
+await watcher.click('button.hotspot[aria-label="Activate the Convergence"]');
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("won"), "DM sees 'won' flag set");
+await watcher.waitForSelector('[data-converge="won"]', { timeout: 10000 });
+const wonLog = (await watcher.locator(".log-panel").textContent()) ?? "";
+check("Watcher sees the victory narration", wonLog.includes("magic has returned to the Silent Forge"));
+check("Convergence hotspot is gone after the win",
+  (await watcher.locator('button.hotspot[aria-label="Activate the Convergence"]').count()) === 0);
+
 await dm.screenshot({ path: `${OUT}dm-console-live.png`, fullPage: true });
-await player.screenshot({ path: `${OUT}player-vault.png`, fullPage: true });
+await player.screenshot({ path: `${OUT}player-spire.png`, fullPage: true });
+await watcher.screenshot({ path: `${OUT}watcher-vault-won.png`, fullPage: true });
 console.log(`\nscreenshots: ${OUT}`);
 
 if (errors.length) {

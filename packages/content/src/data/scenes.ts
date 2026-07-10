@@ -3,11 +3,10 @@ import type { Scene } from "../schema/scene";
 // The narrative text below (room descriptions, item/scene names, flavor
 // text) is licensed CC BY-NC-SA 4.0, not MIT -- see /LICENSE-CONTENT.
 //
-// Phase 1 vertical-slice content only: Entrance (full), Workshop (navigation
-// hotspots only — the valve puzzle is Phase 2), Gallery (full, incl. the
-// elimination puzzle). Content ported verbatim (text/geometry) from the PoC
-// at ~/Downloads/silent_forge(1).html. Archive, Vault, Spire, Prison are
-// added in later phases.
+// All seven scenes: Stage 1 (Entrance, Workshop, Archive, Gallery, Vault,
+// Prison — Phases 1+2) and Stage 2 convergence (Spire + the armed/vented/
+// aligned hotspots — Phase 3). Content ported verbatim (text/geometry) from
+// the PoC at ~/Downloads/silent_forge(1).html.
 
 export const scenes: Scene[] = [
   {
@@ -131,6 +130,59 @@ export const scenes: Scene[] = [
             tone: "flavor",
           },
         ],
+      },
+      {
+        id: "spire-stair",
+        label: "Stairwell to the Spire",
+        x: 25,
+        y: 13,
+        w: 8,
+        h: 20,
+        actions: [{ type: "navigate", sceneId: "spire" }],
+        visibleWhen: { flag: "allPlaced", equals: true },
+      },
+      {
+        id: "overflow-valve",
+        label: "Overflow Valve",
+        x: 67,
+        y: 42,
+        w: 7,
+        h: 10,
+        actions: [
+          {
+            type: "ventOverflow",
+            successText:
+              "You crank the overflow valve. Pressure releases in a long, controlled sigh — quiet, contained, safe.",
+            alreadyVentedText: "The overflow valve is already open; pressure flows smoothly.",
+          },
+        ],
+        visibleWhen: {
+          allOf: [
+            { flag: "armed", equals: true },
+            { flag: "vented", equals: false },
+          ],
+        },
+      },
+      {
+        id: "overflow-valve-open",
+        label: "Overflow Valve",
+        x: 67,
+        y: 42,
+        w: 7,
+        h: 10,
+        actions: [
+          {
+            type: "showText",
+            text: "The overflow valve is already open; pressure flows smoothly.",
+            tone: "flavor",
+          },
+        ],
+        visibleWhen: {
+          allOf: [
+            { flag: "armed", equals: true },
+            { flag: "vented", equals: true },
+          ],
+        },
       },
       {
         id: "door-archive",
@@ -297,6 +349,24 @@ export const scenes: Scene[] = [
           },
         ],
       },
+      // Deliberately AFTER memory-lens in this array so it stacks on top of
+      // the overlapping memory-lens hotspot while active (PoC parity: the
+      // realign controls cover the recording dial until the lens locks).
+      {
+        id: "lens-realign",
+        label: "Realign the Lens",
+        x: 60,
+        y: 55,
+        w: 8,
+        h: 23,
+        actions: [{ type: "openPuzzle", puzzleId: "archive-lens" }],
+        visibleWhen: {
+          allOf: [
+            { flag: "armed", equals: true },
+            { flag: "aligned", equals: false },
+          ],
+        },
+      },
       {
         id: "locked-cabinet",
         label: "Locked Cabinet",
@@ -384,6 +454,107 @@ export const scenes: Scene[] = [
           },
         ],
         visibleWhen: { not: { flag: "placedValve", equals: true } },
+      },
+      {
+        id: "activate-convergence",
+        label: "Activate the Convergence",
+        x: 38,
+        y: 60,
+        w: 24,
+        h: 8,
+        actions: [
+          {
+            type: "activateConvergence",
+            successText:
+              "The chamber floods with violet light. A final, resonant CHIME rolls through the workshop, and the anti-aether field shatters into drifting motes of light. The air itself feels different — magic has returned to the Silent Forge.",
+            resistPrefix: "The convergence resists — ",
+            missingTexts: {
+              armed: "the Spire mechanism has not been armed",
+              vented: "the Workshop pressure has not been vented",
+              aligned: "the Archive lens has not been aligned",
+            },
+          },
+        ],
+        visibleWhen: {
+          allOf: [
+            { flag: "allPlaced", equals: true },
+            { flag: "won", equals: false },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    id: "spire",
+    name: "The Aether Spire",
+    art: { component: "SpireArt" },
+    hotspots: [
+      {
+        id: "back-to-workshop",
+        label: "Back to Workshop",
+        x: 2,
+        y: 2,
+        w: 10,
+        h: 10,
+        actions: [{ type: "navigate", sceneId: "workshop" }],
+      },
+      // Three mutually exclusive lever states. The !allPlaced variant is
+      // unreachable in normal play (the Spire stair only opens at allPlaced)
+      // but kept for PoC parity in case the DM force-scenes someone here.
+      {
+        id: "great-lever-stuck",
+        label: "Great Lever",
+        x: 44,
+        y: 60,
+        w: 12,
+        h: 8,
+        actions: [
+          {
+            type: "showText",
+            text: "The lever will not budge. Whatever this mechanism does, it clearly answers to something else first — the vault below, perhaps, once it is properly fed.",
+            tone: "flavor",
+          },
+        ],
+        visibleWhen: { flag: "allPlaced", equals: false },
+      },
+      {
+        id: "great-lever",
+        label: "Great Lever",
+        x: 44,
+        y: 60,
+        w: 12,
+        h: 8,
+        actions: [
+          {
+            type: "armSpire",
+            successText:
+              "You heave the lever down. Somewhere far below, gears the size of wagon wheels begin to grind. The dial spins wildly and CLANGS to a stop — that was LOUD.",
+            alreadyArmedText:
+              "The lever is already thrown. The dial holds steady on its sigil, and the mechanism churns on.",
+          },
+        ],
+        visibleWhen: {
+          allOf: [
+            { flag: "allPlaced", equals: true },
+            { flag: "armed", equals: false },
+          ],
+        },
+      },
+      {
+        id: "great-lever-thrown",
+        label: "Great Lever",
+        x: 44,
+        y: 60,
+        w: 12,
+        h: 8,
+        actions: [
+          {
+            type: "showText",
+            text: "The lever is already thrown. The dial holds steady on its sigil, and the mechanism churns on.",
+            tone: "flavor",
+          },
+        ],
+        visibleWhen: { flag: "armed", equals: true },
       },
     ],
   },
