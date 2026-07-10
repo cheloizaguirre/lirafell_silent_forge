@@ -662,7 +662,10 @@ main {
   font-size: 12px;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  color: var(--accent-dim);
+  color: #8b90a4;
+  /* legible over the busy game-style floor */
+  background: rgba(11, 12, 14, 0.7);
+  padding: 1px 6px;
 }
 .pixel-rune[data-lit="true"] {
   color: var(--accent-bright);
