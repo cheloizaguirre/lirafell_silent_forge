@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Buf } from "./pixelCanvas";
-import { fillRect, ditherRect, ditherDisc, set, sprite, rgb } from "./pixelCanvas";
+import { fillRect, ditherRect, disc, ditherDisc, set, sprite, rgb } from "./pixelCanvas";
 
 // Shared dressing for the 8-bit scenes: the palette, the dungeon room shell
 // (mottled brickwork, vignette, tiled floor), wall torches, and the 2-frame
@@ -98,6 +98,54 @@ export function drawRoom(buf: Buf): void {
   }
   ditherRect(buf, 0, 81, W, 3, PAL.floorLight, true);
   ditherRect(buf, 0, 92, W, H - 92, PAL.black, true);
+}
+
+// Night-sky shell for the top of the Spire -- the one plausibly-outdoor
+// scene. Keeps drawRoom's conventions (floor seam at y=78, edge vignette,
+// same warm platform stone) so scene coords and kit habits carry over;
+// above the crenellated parapet it's open sky, stars, and a crescent moon.
+export function drawSpireTop(buf: Buf): void {
+  const { w: W, h: H } = buf;
+
+  // starfield: two deterministic scatters, dim steel and rare white
+  fillRect(buf, 0, 0, W, 64, PAL.black);
+  for (let y = 0; y < 58; y++) {
+    for (let x = 0; x < W; x++) {
+      if ((x * 53 + y * 97) % 167 === 0) set(buf, x, y, PAL.steel);
+      if ((x * 31 + y * 61) % 373 === 0) set(buf, x, y, PAL.white);
+    }
+  }
+  // crescent moon -- the scene's one cold note
+  disc(buf, 28, 13, 5, PAL.lensLight);
+  disc(buf, 30, 12, 4, PAL.black);
+
+  // crenellated parapet: merlons first, then the wall walk below
+  for (let x = 0; x < W; x += 16) {
+    fillRect(buf, x, 58, 9, 6, PAL.wall);
+    for (let dx = 0; dx < 9; dx++) set(buf, x + dx, 58, PAL.wallLight);
+  }
+  fillRect(buf, 0, 64, W, 14, PAL.wall);
+  for (let x = 0; x < W; x++) set(buf, x, 64, PAL.wallLight);
+  for (const my of [69, 74] as const) {
+    for (let x = 0; x < W; x++) set(buf, x, my, PAL.mortar);
+  }
+  for (let x = 5; x < W; x += 14) for (let y = 65; y < 69; y++) set(buf, x, y, PAL.mortar);
+  for (let x = 12; x < W; x += 14) for (let y = 70; y < 74; y++) set(buf, x, y, PAL.mortar);
+
+  // stone platform, same treatment as drawRoom's floor
+  fillRect(buf, 0, 78, W, H - 78, PAL.floor);
+  for (let x = 0; x < W; x++) set(buf, x, 78, PAL.floorLight);
+  for (let x = 0; x < W; x++) set(buf, x, 79, PAL.floorLine);
+  for (let y = 84; y < H; y += 6) for (let x = 0; x < W; x++) set(buf, x, y, PAL.floorLine);
+  for (let x = 8; x < W; x += 20) {
+    for (let y = 80; y < H; y++) set(buf, x, y, PAL.floorLine);
+  }
+  ditherRect(buf, 0, 81, W, 3, PAL.floorLight, true);
+  ditherRect(buf, 0, 92, W, H - 92, PAL.black, true);
+
+  // edge vignette (the sky is already dark; the sides still need the pull)
+  ditherRect(buf, 0, 0, 8, H, PAL.black);
+  ditherRect(buf, W - 8, 0, 8, H, PAL.black);
 }
 
 export function drawTorch(buf: Buf, x: number, y: number, frame: number): void {

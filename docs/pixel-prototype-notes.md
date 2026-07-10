@@ -1,10 +1,10 @@
 # 8-bit prototype: checkpoint notes
 
-Written 2026-07-10 on the `proto-vault-8bit` branch. **Status: 6 of 7 scenes
-done (Vault, Entrance, Workshop, Archive, Prison, Gallery). Remaining:
-Spire.** The branch stays unmerged until the user approves the full set.
-This file is the resume-here doc for the remaining scene: everything below
-was learned by building the first six, most of it by screenshot.
+Written 2026-07-10 on the `proto-vault-8bit` branch. **Status: all 7 scenes
+done (Vault, Entrance, Workshop, Archive, Prison, Gallery, Spire).
+Remaining: the user's approval pass over the full set, then merge.** This
+file is now the pre-merge reference: everything below was learned by
+building the seven scenes, most of it by screenshot.
 
 ## Pipeline (what exists)
 
@@ -17,7 +17,9 @@ was learned by building the first six, most of it by screenshot.
   `PAL` (deliberately breaks from the muted UI chrome — user decision
   2026-07-10; the chrome itself must stay muted), `drawRoom` (mottled
   brickwork to the floor seam at y=78, warm tiled floor below, edge
-  vignette), `drawTorch`, and `usePixelFrame` (2-frame / 600ms flicker).
+  vignette), `drawSpireTop` (the outdoor variant shell: starfield, crescent
+  moon, crenellated parapet — same floor seam and vignette so kit habits
+  carry over), `drawTorch`, and `usePixelFrame` (2-frame / 600ms flicker).
 - **Per-scene component** = kit + ~110–180 lines of furniture, same
   `flags → visuals` contract as the SVG it replaces. Swap-in/swap-back is a
   one-line entry in `engine/sceneRegistry.ts`.
@@ -76,20 +78,22 @@ was learned by building the first six, most of it by screenshot.
    state variant. Caught: rune label collisions, all three black-on-black
    failures, the gloom moiré, the BANG hidden behind the puzzle modal.
 
-## Notes for the remaining scene
+## How the Spire resolved (the open design questions)
 
-- **Spire**: the great dial (☉ as a drawn pixel sigil when armed — it's
-  the Archive clue, must be big and unmissable; "dial dormant" becomes a
-  caption or a dark dial face), the brass lever with the violet
-  interactable glint until thrown. Consider whether the top of the Spire
-  wants a variant shell (night sky + parapet instead of `drawRoom`'s
-  dungeon brick) — it's the only scene that's plausibly outdoors; decide
-  by screenshot, and if a sky shell is built, keep it in dungeonKit next
-  to `drawRoom`.
+- The sky shell was worth building: `drawSpireTop` went into dungeonKit
+  next to `drawRoom`, and the outdoor night (starfield, cyan crescent moon
+  as the scene's one cold note, crenellated parapet) makes the climax scene
+  read distinct on the first screenshot.
+- ☉ is drawn, not printed: double violet ring + core disc on the dial face,
+  pulsing on the flicker frame over a sparse haze — unmissable, and a
+  player can relay "a circle with a dot" to the Archive without text.
+- "Dial dormant" needed no caption: the dead mortar face with brass
+  quarter-ticks reads dormant on its own. The lever caption keeps SVG
+  parity ("a great brass lever" / "the lever rests, thrown").
+- The Archive's beam is fired here, same grammar both ends: sputtering
+  dither while armed, solid `purpleBright` core once aligned.
 
 ## Open items before merge
-
-- Spire scene.
 - User approval pass over all seven, then merge (`main` still renders the
   SVG originals; the registry diff is the only integration point).
 - On merge: update NEXT_STEPS.md + the sprite-art-analysis doc (the
