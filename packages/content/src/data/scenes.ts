@@ -33,10 +33,12 @@ export const scenes: Scene[] = [
       {
         id: "slumped-automaton",
         label: "Slumped Automaton",
-        x: 24,
-        y: 62,
-        w: 12,
-        h: 22,
+        // proto-vault-8bit: grown to cover the pixel colossus (head included);
+        // the SVG original's box was x24,y62,w12,h22.
+        x: 22,
+        y: 44,
+        w: 17,
+        h: 42,
         actions: [
           {
             type: "showText",

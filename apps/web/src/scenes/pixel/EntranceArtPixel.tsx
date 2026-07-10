@@ -66,31 +66,46 @@ function draw(ctx: CanvasRenderingContext2D, frame: number): void {
   disc(buf, 80, 4, 2, PAL.purple);
   set(buf, 80, 3, PAL.purpleBright);
 
-  // ---- Slumped automaton (SVG ~x236-264, y345-430 -> x47-53, y69-86) -------
-  // Black chassis with violet edge-light: steel faded into the slate wall.
-  ditherRect(buf, 44, 85, 13, 2, PAL.black);
-  // legs splayed on the floor
-  fillRect(buf, 45, 82, 4, 3, PAL.black);
-  fillRect(buf, 52, 82, 4, 3, PAL.black);
-  set(buf, 45, 82, PAL.purpleDim);
-  set(buf, 55, 82, PAL.purpleDim);
-  // torso leaning into the wall
-  fillRect(buf, 47, 72, 7, 11, PAL.black);
-  for (let y = 72; y < 83; y++) set(buf, 47, y, PAL.purpleDim);
-  set(buf, 48, 72, PAL.purpleDim);
-  // chest plate, its aether core long dead
-  fillRect(buf, 48, 75, 4, 3, PAL.purpleDim);
-  set(buf, 49, 76, PAL.purple);
-  // head lolled to one side; one eye still faintly lit
-  disc(buf, 49, 69, 3, PAL.black);
-  set(buf, 47, 67, PAL.purpleDim);
-  set(buf, 48, 66, PAL.purpleDim);
-  set(buf, 49, 66, PAL.purpleDim);
-  set(buf, 48, 69, PAL.purpleBright);
-  set(buf, 51, 69, PAL.purpleDim);
-  // limp arm
-  fillRect(buf, 54, 76, 2, 6, PAL.black);
-  set(buf, 54, 76, PAL.purpleDim);
+  // ---- The slumped automaton, now a seated colossus (x36-61, y45-86) -------
+  // Black chassis with violet edge-light. Bigger than a person, hunched
+  // against the wall, fists on the floor -- dormant, not harmless. Its
+  // eyes pulse with the flicker frame.
+  ditherRect(buf, 36, 85, 27, 2, PAL.black);
+  // massive arms first (behind the torso), fists resting on the floor
+  fillRect(buf, 37, 62, 4, 18, PAL.black);
+  fillRect(buf, 58, 62, 3, 16, PAL.black);
+  fillRect(buf, 36, 79, 6, 6, PAL.black);
+  fillRect(buf, 56, 77, 5, 7, PAL.black);
+  set(buf, 36, 79, PAL.purpleDim);
+  set(buf, 37, 79, PAL.purpleDim);
+  set(buf, 56, 77, PAL.purpleDim);
+  // shoulder slab + hunched torso + folded base
+  fillRect(buf, 39, 56, 21, 8, PAL.black);
+  fillRect(buf, 41, 62, 17, 18, PAL.black);
+  fillRect(buf, 40, 79, 19, 6, PAL.black);
+  // rim light along the shoulders and the wall-side edge
+  for (let x = 40; x < 59; x++) set(buf, x, 56, PAL.purpleDim);
+  for (let y = 62; y < 80; y++) set(buf, 37, y, PAL.purpleDim);
+  // plating seams across the torso
+  for (let x = 42; x < 57; x += 3) {
+    set(buf, x, 72, PAL.purpleDim);
+    set(buf, x + 1, 77, PAL.purpleDim);
+  }
+  // aether core behind the chest plate, faint but alive
+  fillRect(buf, 48, 66, 3, 3, PAL.purpleDim);
+  set(buf, 49, 67, frame === 0 ? PAL.purple : PAL.purpleBright);
+  // horned, angular head jutting forward off the shoulders
+  fillRect(buf, 43, 48, 11, 9, PAL.black);
+  fillRect(buf, 43, 45, 2, 3, PAL.black);
+  fillRect(buf, 52, 45, 2, 3, PAL.black);
+  set(buf, 43, 45, PAL.purpleDim);
+  set(buf, 53, 45, PAL.purpleDim);
+  for (let y = 48; y < 57; y++) set(buf, 43, y, PAL.purpleDim);
+  // brow line, then both eyes -- pulsing, watching
+  for (let x = 45; x < 52; x++) set(buf, x, 50, PAL.purpleDim);
+  const eye = frame === 0 ? PAL.purpleBright : PAL.purple;
+  fillRect(buf, 45, 52, 2, 1, eye);
+  fillRect(buf, 49, 52, 2, 1, eye);
 
   // ---- Writing desk (SVG x560-650, y360-435 -> x112-130, y72-87) -----------
   ditherRect(buf, 111, 86, 20, 2, PAL.black);
