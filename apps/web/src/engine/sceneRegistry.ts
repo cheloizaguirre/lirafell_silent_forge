@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import { EntranceArtPixel } from "../scenes/pixel/EntranceArtPixel";
 import { WorkshopArtPixel } from "../scenes/pixel/WorkshopArtPixel";
 import { GalleryArt } from "../scenes/GalleryArt";
-import { ArchiveArt } from "../scenes/ArchiveArt";
+import { ArchiveArtPixel } from "../scenes/pixel/ArchiveArtPixel";
 import { VaultArtPixel } from "../scenes/pixel/VaultArtPixel";
 import { SpireArt } from "../scenes/SpireArt";
 import { PrisonArt } from "../scenes/PrisonArt";
@@ -17,7 +17,7 @@ export const sceneRegistry: Record<string, ComponentType<ArtProps>> = {
   EntranceArt: EntranceArtPixel,
   WorkshopArt: WorkshopArtPixel,
   GalleryArt,
-  ArchiveArt,
+  ArchiveArt: ArchiveArtPixel,
   VaultArt: VaultArtPixel,
   SpireArt,
   PrisonArt,

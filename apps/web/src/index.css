@@ -679,6 +679,20 @@ main {
   padding: 2px 8px;
   font-size: 14px;
 }
+/* In-scene inscriptions (clues painted on the art in the SVG originals) --
+   readable HTML over the canvas, same rule as the rune labels. */
+.pixel-caption {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #8b90a4;
+  background: rgba(11, 12, 14, 0.7);
+  padding: 1px 6px;
+  pointer-events: none;
+}
 
 .dm-cheatsheet {
   background: var(--shadow2);
