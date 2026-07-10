@@ -62,8 +62,13 @@ woven through the same flow: noise gauge on the DM console only, big BANG on
 the noise-maker's screen + small anonymous BANG on bystanders (armed with
 `waitForSelector` BEFORE the noisy click -- the burst only lives ~1.2s),
 the single-message latest panel + newest-first history rail, and the DM's
-±10 noise steppers. 62 checks; screenshots land in `verify-artifacts/`
-(gitignored). Extend it in place when new scenes/puzzles need coverage.
+±10 noise steppers. Phase 7 adds: the DM cheat-sheet (expanded BEFORE the
+zero-actions marker -- toggling <details> is a UI action), the visible
+corner-exit chips + the Workshop's "Back to Entrance Hall" round-trip, and
+the book puzzle auto-closing on solve (do NOT click "Close" after the tome
+sequence; assert `.puzzle-panel` detaches instead). 67 checks; screenshots
+land in `verify-artifacts/` (gitignored). Extend it in place when new
+scenes/puzzles need coverage.
 
 There's a second, smaller driver for layout/touch (built for the Phase 5
 phone pass, retargeted at tablets in Phase 6 -- phones are out of scope by

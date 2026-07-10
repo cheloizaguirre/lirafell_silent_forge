@@ -6,10 +6,12 @@ import {
   dmAdjustNoise,
   dmClearNoise,
   dmForceScene,
+  dmGetSolutions,
   dmGrantItem,
   fetchOwnPlayer,
   fetchSessionByCode,
 } from "../lib/sessionApi";
+import type { DmSolution } from "../lib/sessionApi";
 import { useSessionStore } from "../state/useSessionStore";
 import { useSessionState } from "../state/useSessionState";
 
@@ -39,8 +41,26 @@ export function DmPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [movePlayerId, setMovePlayerId] = useState("");
   const [moveSceneId, setMoveSceneId] = useState<string>(scenes[0]?.id ?? "entrance");
+  const [solutions, setSolutions] = useState<DmSolution[] | null>(null);
 
   useSessionState(sessionId);
+
+  // The cheat sheet comes from a role-gated RPC (answers never ship in the
+  // bundle); one fetch per session is plenty -- it's static content.
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    dmGetSolutions(sessionId)
+      .then((s) => {
+        if (!cancelled) setSolutions(s);
+      })
+      .catch(() => {
+        if (!cancelled) setSolutions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
 
   const runDmAction = async (fn: () => Promise<void>) => {
     setActionBusy(true);
@@ -245,6 +265,25 @@ export function DmPage() {
           </div>
           {actionError && <p className="error">{actionError}</p>}
         </div>
+
+        {/* Collapsed by default: the DM console is private, but no reason to
+            have every answer on screen when a player wanders past. */}
+        <details className="dm-cheatsheet">
+          <summary>Cheat sheet — all puzzle solutions</summary>
+          {solutions === null && <p className="dm-cheatsheet-note">Loading…</p>}
+          {solutions?.length === 0 && (
+            <p className="dm-cheatsheet-note">Could not load the cheat sheet.</p>
+          )}
+          <ul>
+            {(solutions ?? []).map((s) => (
+              <li key={s.title}>
+                <b>{s.title}</b>
+                <span className="dm-cheatsheet-solution">{s.solution}</span>
+                <span className="dm-cheatsheet-note">{s.note}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </main>
     </>
   );
