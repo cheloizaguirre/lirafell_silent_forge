@@ -12,6 +12,15 @@ import { useSessionStore } from "./useSessionStore";
 // disconnected (phone locked, wifi drop) -- on every fresh SUBSCRIBED
 // event we re-fetch both tables to reconcile, rather than trusting the
 // event stream alone.
+//
+// That alone is not enough: the service acks SUBSCRIBED before its
+// change-feed worker is actually consuming, so events fired in the first
+// seconds after a (re)connect can be dropped with no error and no late
+// delivery (verify skill Gotcha #0, reproduced 2026-07-10). Hence the
+// second, delayed reconcile below -- it sweeps up anything lost in that
+// window, and doubles as cover for flaky-wifi reconnects on phones.
+const RECONCILE_SWEEP_MS = 5000;
+
 export function useSessionState(sessionId: string | null) {
   const setSessionState = useSessionStore((s) => s.setSessionState);
   const setPlayers = useSessionStore((s) => s.setPlayers);
@@ -21,6 +30,7 @@ export function useSessionState(sessionId: string | null) {
     if (!sessionId) return;
 
     let cancelled = false;
+    let sweepTimer: ReturnType<typeof setTimeout> | undefined;
     const reconcile = async () => {
       const [state, players] = await Promise.all([
         fetchSessionState(sessionId),
@@ -52,6 +62,8 @@ export function useSessionState(sessionId: string | null) {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
           void reconcile();
+          clearTimeout(sweepTimer);
+          sweepTimer = setTimeout(() => void reconcile(), RECONCILE_SWEEP_MS);
         }
       });
 
@@ -59,6 +71,7 @@ export function useSessionState(sessionId: string | null) {
 
     return () => {
       cancelled = true;
+      clearTimeout(sweepTimer);
       void supabase.removeChannel(channel);
     };
   }, [sessionId, setSessionState, setPlayers, upsertPlayer]);

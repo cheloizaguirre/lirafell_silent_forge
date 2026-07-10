@@ -152,6 +152,9 @@ main {
   border: none;
   padding: 0;
   background: transparent;
+  /* The glow below is the tap feedback; the browser default paints a blue
+     box over it on touch. */
+  -webkit-tap-highlight-color: transparent;
   transition:
     box-shadow 0.2s,
     background 0.2s;
@@ -477,4 +480,76 @@ main {
 .dm-override-row button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* ---- Mobile hardening (Phase 5) ----------------------------------------
+   Phones are the point of the multi-device design. Two concerns only:
+   spacing on narrow viewports, and touch targets on coarse pointers.
+   (Full accessibility pass is deferred beyond v1.) */
+
+@media (max-width: 600px) {
+  header {
+    padding: 12px 14px 10px;
+  }
+  main {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+  h1 {
+    font-size: 21px;
+  }
+  .form-shell {
+    margin: 28px 14px;
+  }
+  .puzzle-overlay {
+    padding: 12px;
+  }
+  .puzzle-panel {
+    padding: 16px;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+  .puzzle-dials {
+    flex-wrap: wrap;
+  }
+  .puzzle-dial {
+    /* Four dials fit two-up; keeps each dial a comfortable tap size. */
+    flex: 1 1 40%;
+  }
+  .log-panel {
+    font-size: 15px;
+    min-height: 90px;
+    max-height: 170px;
+  }
+}
+
+@media (pointer: coarse) {
+  /* 44px minimum tap target on every real control. */
+  .puzzle-option,
+  .puzzle-close,
+  .warden-actions button,
+  .dm-override-row button,
+  .dm-override-row select,
+  .form-shell button {
+    min-height: 44px;
+  }
+
+  /* Hotspots are sized as % of the scene; the smallest are a few px on a
+     phone. Extend the *hit area* (not the visible highlight) to at least
+     44x44, centered on the hotspot, via an invisible pseudo-element. */
+  .hotspot::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+
+  /* No hover on touch -- surface the label while the finger is down /
+     right after activation instead. */
+  .hotspot:active::after {
+    opacity: 1;
+  }
 }

@@ -61,7 +61,20 @@ prove dm_grant_item unsticks a party that solved nothing. 52 checks;
 screenshots land in `verify-artifacts/` (gitignored). Extend it in place when
 new scenes/puzzles need coverage.
 
-## Gotcha #0: warm up Realtime before trusting a failed run
+There's a second, smaller driver for the Phase 5 mobile layout work:
+
+```bash
+pnpm verify:mobile                # runs scripts/verify-mobile.mjs
+```
+
+It replays the join flow on an emulated iPhone 13 (coarse pointer + touch)
+and measures the layout CSS directly: no horizontal overflow on any route,
+44px minimum controls, the expanded hotspot tap areas (`.hotspot::before`),
+dial wrap in the valve puzzle, and that taps actually drive the game. 13
+checks; same prerequisites as `verify:realtime`. Run it after touching
+`index.css` layout/touch rules or the hotspot layer.
+
+## Gotcha #0: the Realtime cold-start gap (fixed app-side in Phase 5)
 
 **The first postgres_changes subscription after the realtime service (re)starts
 reports `SUBSCRIBED` but silently drops events for the first few seconds** --
@@ -72,15 +85,19 @@ starts working shortly after. Reproduced deterministically on 2026-07-10 by
 `players` INSERT fired ~1s after `SUBSCRIBED`, an identical run 30s later
 delivered everything within 500ms.
 
-Symptom shape: a player joins and never appears on other devices, but starts
-appearing the moment they *act* (their UPDATE arrives fine and the client
-upserts the whole row). If the two-context test fails only on "DM sees the
-new player appear," rerun it before debugging anything -- and after a fresh
-`supabase start`, either run a throwaway subscription first or just run the
-suite twice.
+**Since Phase 5 the app self-heals**: `useSessionState` schedules a second
+reconcile fetch ~5s after every `SUBSCRIBED` (on top of the immediate one),
+sweeping up anything dropped in the gap. Verified 2026-07-10: two consecutive
+`supabase db reset` + `docker restart supabase_realtime_lirafell_workshop` +
+immediate suite runs both passed 52/52 -- the old "rerun the suite after a
+fresh start" ritual is gone, and its return is the regression signal.
 
-(App-level hardening -- e.g. a delayed re-reconcile after `SUBSCRIBED` --
-is Phase 5 roadmap territory, not yet built.)
+The service-level behavior itself is unchanged, so it still bites anything
+that subscribes *outside* the app's hook (throwaway probe scripts, future
+tables/channels): symptom shape is a row INSERT that never appears on other
+devices until the row is next UPDATEd. If you see that from a hand-rolled
+subscription, warm the service up first; if you see it in the app, the sweep
+in `apps/web/src/state/useSessionState.ts` has regressed.
 
 ## Gotcha that will burn an hour if you don't check it first
 
