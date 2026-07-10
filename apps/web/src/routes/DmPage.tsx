@@ -1,17 +1,31 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { scenes } from "@silent-forge/content";
 import { ensureAnonymousSession } from "../lib/auth";
-import { dmClearNoise, dmForceScene, fetchOwnPlayer, fetchSessionByCode } from "../lib/sessionApi";
+import {
+  dmClearNoise,
+  dmForceScene,
+  dmGrantItem,
+  fetchOwnPlayer,
+  fetchSessionByCode,
+} from "../lib/sessionApi";
 import { useSessionStore } from "../state/useSessionStore";
 import { useSessionState } from "../state/useSessionState";
 
-// Mostly a read-only live dump of flags/inventory/noise/players. The one
-// write surface is the Warden alert panel: when noise hits 100 nothing
-// happens automatically -- the DM narrates at the table and decides who (if
-// anyone) gets dragged to the cell, or whether the party slipped away.
-// dm_force_scene/dm_clear_noise are role-gated server-side; the rest of the
-// Phase 4 overrides (grant item, arbitrary scene moves from the roster) will
-// attach to this same foundation.
+// Pretty names for the grant buttons; ids are what the RPC/state speak.
+const GRANTABLE_ITEMS = [
+  { id: "heart", name: "Cogwork Heart" },
+  { id: "lens", name: "Aether Lens" },
+  { id: "valve", name: "Pressure Valve Key" },
+];
+
+// A live dump of flags/inventory/noise/players, plus the two write surfaces:
+// the Warden alert panel (noise 100 -- nothing happens automatically, the DM
+// narrates at the table and decides who gets dragged to the cell or whether
+// the party slipped away) and the always-on overrides panel (the plan's v1
+// trio, no more: force scene per-player, clear noise, grant item). Every
+// override RPC is role-gated server-side -- this route being hidden from
+// players is cosmetic, not the gate.
 export function DmPage() {
   const { code } = useParams<{ code: string }>();
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -22,6 +36,8 @@ export function DmPage() {
   const players = useSessionStore((s) => s.players);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [movePlayerId, setMovePlayerId] = useState("");
+  const [moveSceneId, setMoveSceneId] = useState<string>(scenes[0]?.id ?? "entrance");
 
   useSessionState(sessionId);
 
@@ -143,6 +159,70 @@ export function DmPage() {
             </li>
           ))}
         </ul>
+
+        <div className="dm-overrides">
+          <h2>Overrides</h2>
+          <div className="dm-override-row">
+            <label htmlFor="dm-move-player">Move</label>
+            <select
+              id="dm-move-player"
+              value={movePlayerId}
+              onChange={(e) => setMovePlayerId(e.target.value)}
+            >
+              <option value="">choose a player…</option>
+              {players
+                .filter((p) => p.role === "player")
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.display_name}
+                  </option>
+                ))}
+            </select>
+            <label htmlFor="dm-move-scene">to</label>
+            <select
+              id="dm-move-scene"
+              value={moveSceneId}
+              onChange={(e) => setMoveSceneId(e.target.value)}
+            >
+              {scenes.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={actionBusy || !movePlayerId}
+              onClick={() => void runDmAction(() => dmForceScene(sessionId, movePlayerId, moveSceneId))}
+            >
+              Move player
+            </button>
+          </div>
+          <div className="dm-override-row">
+            <span className="dm-override-label">Grant</span>
+            {GRANTABLE_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                disabled={actionBusy || sessionState.inventory.includes(item.id)}
+                onClick={() => void runDmAction(() => dmGrantItem(sessionId, item.id))}
+              >
+                {sessionState.inventory.includes(item.id) ? `${item.name} ✓` : item.name}
+              </button>
+            ))}
+          </div>
+          <div className="dm-override-row">
+            <span className="dm-override-label">Noise</span>
+            <button
+              type="button"
+              disabled={actionBusy || sessionState.noise === 0}
+              onClick={() => void runDmAction(() => dmClearNoise(sessionId))}
+            >
+              Clear noise ({sessionState.noise})
+            </button>
+          </div>
+          {actionError && <p className="error">{actionError}</p>}
+        </div>
       </main>
     </>
   );
