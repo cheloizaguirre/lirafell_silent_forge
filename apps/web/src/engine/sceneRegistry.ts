@@ -5,7 +5,7 @@ import { GalleryArtPixel } from "../scenes/pixel/GalleryArtPixel";
 import { ArchiveArtPixel } from "../scenes/pixel/ArchiveArtPixel";
 import { VaultArtPixel } from "../scenes/pixel/VaultArtPixel";
 import { SpireArtPixel } from "../scenes/pixel/SpireArtPixel";
-import { PrisonArtPixel } from "../scenes/pixel/PrisonArtPixel";
+import { PrisonArtPixel, PrisonCorridorArtPixel } from "../scenes/pixel/PrisonArtPixel";
 import type { ArtProps } from "../scenes/artTypes";
 
 // Maps a scene's content-authored `art.component` string to the actual
@@ -21,4 +21,5 @@ export const sceneRegistry: Record<string, ComponentType<ArtProps>> = {
   VaultArt: VaultArtPixel,
   SpireArt: SpireArtPixel,
   PrisonArt: PrisonArtPixel,
+  PrisonCorridorArt: PrisonCorridorArtPixel,
 };

@@ -8,6 +8,7 @@ import {
   dmForceScene,
   dmGetSolutions,
   dmGrantItem,
+  dmSetWardenHidden,
   fetchOwnPlayer,
   fetchSessionByCode,
 } from "../lib/sessionApi";
@@ -238,6 +239,24 @@ export function DmPage() {
                 {sessionState.inventory.includes(item.id) ? `${item.name} ✓` : item.name}
               </button>
             ))}
+          </div>
+          <div className="dm-override-row">
+            <span className="dm-override-label">Warden</span>
+            {/* Party-wide toggle: hides the Workshop colossus (sprite +
+                hotspot) live on every device. Jump-scare groundwork. */}
+            <button
+              type="button"
+              disabled={actionBusy}
+              onClick={() =>
+                void runDmAction(() =>
+                  dmSetWardenHidden(sessionId, sessionState.flags.wardenHidden !== true),
+                )
+              }
+            >
+              {sessionState.flags.wardenHidden === true
+                ? "Hidden — bring it back"
+                : "Hide the Warden"}
+            </button>
           </div>
           <div className="dm-override-row">
             <span className="dm-override-label">Noise</span>

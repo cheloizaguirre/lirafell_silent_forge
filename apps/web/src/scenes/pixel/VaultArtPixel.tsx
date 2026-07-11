@@ -78,18 +78,33 @@ function draw(ctx: CanvasRenderingContext2D, s: VaultState, frame: number): void
 
   // Victory: the room floods -- dithered aether bands inside the ring.
   if (s.won) {
-    ditherDisc(buf, 80, 50, 44, PAL.purpleDim, true);
-    ditherDisc(buf, 80, 50, 32, PAL.purpleDim);
-    ditherDisc(buf, 80, 50, 20, PAL.purple);
+    ditherDisc(buf, 80, 42, 32, PAL.purpleDim, true);
+    ditherDisc(buf, 80, 42, 24, PAL.purpleDim);
+    ditherDisc(buf, 80, 42, 14, PAL.purple);
   }
 
-  // The great containment ring (SVG r180 -> 36): steel-blue, 2px chunky,
-  // with four violet gem studs at the cardinal points.
-  ring(buf, 80, 50, 36, s.won ? PAL.purpleBright : PAL.steel);
-  ring(buf, 80, 50, 35, s.won ? PAL.purpleBright : PAL.steelDark);
-  for (const [gx, gy] of [[80, 14], [80, 86], [44, 50], [116, 50]] as const) {
+  // The great containment ring: steel-blue, 2px chunky, four violet gem
+  // studs at the cardinal points. Feedback pass 2026-07-11: shrunk and
+  // raised (was cy50 r36, bottom gem sitting ON the floor past the y78
+  // seam) so the whole ring stays on the wall and the floor keeps room for
+  // the convergence sigils and altar.
+  ring(buf, 80, 42, 26, s.won ? PAL.purpleBright : PAL.steel);
+  ring(buf, 80, 42, 25, s.won ? PAL.purpleBright : PAL.steelDark);
+  for (const [gx, gy] of [[80, 16], [80, 68], [54, 42], [106, 42]] as const) {
     fillRect(buf, gx - 1, gy - 1, 3, 3, s.won ? PAL.white : PAL.purple);
     set(buf, gx, gy, PAL.purpleBright);
+  }
+
+  // Stairwell up to the Spire (allPlaced) -- moved here from the Workshop
+  // (feedback): the stairs physically connect Vault <-> Spire. Right wall,
+  // clear of the ring and the torch.
+  if (s.allPlaced) {
+    fillRect(buf, 132, 44, 16, 32, PAL.black);
+    frameRect(buf, 132, 44, 16, 32, PAL.purpleBright);
+    // steps climbing into the dark
+    for (let i = 0; i < 4; i++) {
+      for (let x = 134 + i * 2; x < 146; x++) set(buf, x, 72 - i * 6, PAL.floorLight);
+    }
   }
 
   // Pedestal (SVG 330,200 140x100 -> 66,40 28x20): stone slab, brass trim.
@@ -125,14 +140,25 @@ function draw(ctx: CanvasRenderingContext2D, s: VaultState, frame: number): void
     frameRect(buf, 86, 44, 6, 6, PAL.brass);
   }
 
+  // The convergence altar (feedback: the activate hotspot had no graphic):
+  // a low focusing plinth in front of the pedestal, its core sigil pulsing.
+  if (s.allPlaced && !s.won) {
+    fillRect(buf, 72, 62, 16, 5, PAL.steelDark);
+    frameRect(buf, 72, 62, 16, 5, PAL.brass);
+    set(buf, 72, 62, PAL.brassLight);
+    set(buf, 87, 62, PAL.brassLight);
+    set(buf, 79, 64, frame === 0 ? PAL.purpleBright : PAL.purple);
+    set(buf, 80, 64, frame === 0 ? PAL.purple : PAL.purpleBright);
+  }
+
   // Convergence sigils above the rune labels (labels are HTML, below).
   if (s.allPlaced && !s.won) {
     const lit = [s.armed, s.vented, s.aligned];
     CONVERGE_RUNES.forEach((rune, i) => {
       const cx = Math.round((rune.x / 100) * W);
-      if (lit[i]) ditherDisc(buf, cx, 71, 4, PAL.purple);
-      sprite(buf, cx - 2, 69, DIAMOND, lit[i] ? PAL.purpleBright : PAL.purpleDim);
-      if (lit[i]) set(buf, cx, 71, PAL.white);
+      if (lit[i]) ditherDisc(buf, cx, 72, 4, PAL.purple);
+      sprite(buf, cx - 2, 70, DIAMOND, lit[i] ? PAL.purpleBright : PAL.purpleDim);
+      if (lit[i]) set(buf, cx, 72, PAL.white);
     });
   }
 
@@ -204,7 +230,7 @@ export function VaultArtPixel({ flags }: ArtProps) {
       )}
       {state.won && (
         <span className="pixel-rune pixel-rune-won" style={{ left: "50%" }} data-converge="won">
-          the anti-aether field has fallen
+          THE ANTI-AETHER FIELD HAS FALLEN
         </span>
       )}
     </div>

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ConditionSchema } from "./condition";
+import type { Condition } from "./condition";
 
 export interface NavigateAction {
   type: "navigate";
@@ -11,6 +13,9 @@ export interface ShowTextAction {
   onlyIfFlagUnset?: string;
   onlyIfFlagSet?: string;
   setFlagAfter?: string;
+  // Evaluated against PARTY flags/inventory (session_state), unlike the
+  // onlyIf* fields above which read the per-device localFlags set.
+  when?: Condition;
 }
 export interface OpenPuzzleAction {
   type: "openPuzzle";
@@ -52,6 +57,18 @@ export interface RepeatClickAction {
 export interface EscapePrisonAction {
   type: "escapePrison";
 }
+// Sets a party-shared flag via the allowlisted set_party_flag RPC (clue
+// reveals: galleryClueFound / archiveClueFound / brickOpened).
+export interface SetPartyFlagAction {
+  type: "setPartyFlag";
+  flag: string;
+}
+// Purely local: nudges a per-device transient counter so scene art can play
+// a short interaction animation (e.g. the prison grate rattle). No server call.
+export interface PulseAction {
+  type: "pulse";
+  id: string;
+}
 
 export type Action =
   | NavigateAction
@@ -62,7 +79,9 @@ export type Action =
   | VentOverflowAction
   | ActivateConvergenceAction
   | RepeatClickAction
-  | EscapePrisonAction;
+  | EscapePrisonAction
+  | SetPartyFlagAction
+  | PulseAction;
 
 export const ActionSchema: z.ZodType<Action> = z.lazy(() =>
   z.discriminatedUnion("type", [
@@ -74,6 +93,7 @@ export const ActionSchema: z.ZodType<Action> = z.lazy(() =>
       onlyIfFlagUnset: z.string().optional(),
       onlyIfFlagSet: z.string().optional(),
       setFlagAfter: z.string().optional(),
+      when: ConditionSchema.optional(),
     }),
     z.object({ type: z.literal("openPuzzle"), puzzleId: z.string() }),
     z.object({
@@ -111,5 +131,7 @@ export const ActionSchema: z.ZodType<Action> = z.lazy(() =>
       onComplete: z.array(ActionSchema),
     }),
     z.object({ type: z.literal("escapePrison") }),
+    z.object({ type: z.literal("setPartyFlag"), flag: z.string() }),
+    z.object({ type: z.literal("pulse"), id: z.string() }),
   ]),
 );

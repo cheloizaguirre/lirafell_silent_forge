@@ -114,6 +114,29 @@ main {
   display: block;
   margin-bottom: 3px;
 }
+/* Player inventory as pixel item sprites (heart / lens / valve). */
+.inventory-items {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  vertical-align: middle;
+}
+.inventory-item canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+/* Visually hidden, still read by screen readers (and textContent checks). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 .noise-row {
   display: flex;
@@ -177,7 +200,7 @@ main {
 }
 .noise-bang-big svg {
   width: min(55%, 360px);
-  animation: bang-pop 1.2s ease-out forwards;
+  animation: bang-pop 1.7s ease-out forwards;
 }
 .noise-bang-small {
   top: 12px;
@@ -185,7 +208,7 @@ main {
 }
 .noise-bang-small svg {
   width: 88px;
-  animation: bang-pop 1.2s ease-out forwards;
+  animation: bang-pop 1.7s ease-out forwards;
 }
 @keyframes bang-pop {
   0% {

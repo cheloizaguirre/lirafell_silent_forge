@@ -148,6 +148,7 @@ export function ArchiveArtPixel({ flags }: ArtProps) {
     armed: flags.armed === true,
     aligned: flags.aligned === true,
   };
+  const clueFound = flags.archiveClueFound === true;
 
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
@@ -158,9 +159,11 @@ export function ArchiveArtPixel({ flags }: ArtProps) {
   return (
     <div className="scene-pixel">
       <canvas ref={canvasRef} width={W} height={H} className="scene-pixel-canvas" />
-      <span className="pixel-caption" style={{ left: "21%", top: "82%" }}>
-        "Violet before Ash, Ash before Ember."
-      </span>
+      {clueFound && (
+        <span className="pixel-caption" style={{ left: "21%", top: "82%" }}>
+          "Violet before Ash, Ash before Ember."
+        </span>
+      )}
     </div>
   );
 }

@@ -94,9 +94,14 @@ building the seven scenes, most of it by screenshot.
   dither while armed, solid `purpleBright` core once aligned.
 
 ## Open items before merge
-- User approval pass over all seven, then merge (`main` still renders the
-  SVG originals; the registry diff is the only integration point).
+- ~~User approval pass over all seven~~ → done 2026-07-11; the resulting
+  feedback (docs/pixel_feedback.md) is implemented on this branch. The
+  updated route lives in docs/pixel-approval-walkthrough.md; a second
+  approval pass over the feedback changes, then merge (`main` still renders
+  the SVG originals; the registry diff is the only integration point).
+- SVG components' fate: **decided** — they stay as non-authoritative
+  references (feedback final thoughts); the pixel components drive
+  development.
 - On merge: update NEXT_STEPS.md + the sprite-art-analysis doc (the
   "1–2 weeks of art production" estimate collapsed — procedural sprites
-  took ~a day for five scenes), and decide the SVG components' fate
-  (keep as swap-back references vs delete).
+  took ~a day for five scenes).

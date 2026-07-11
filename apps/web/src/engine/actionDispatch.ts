@@ -5,12 +5,19 @@ import {
   escapePrison,
   placeItem,
   setCurrentScene,
+  setPartyFlag,
   ventOverflow,
 } from "../lib/sessionApi";
+import type { FlagValue } from "../lib/sessionApi";
 import { useSessionStore } from "../state/useSessionStore";
+import { evaluateCondition } from "./conditions";
 
 export interface DispatchContext {
   sessionId: string;
+  // Party-shared state (session_state row) at dispatch time; showText `when`
+  // conditions evaluate against THIS, never against localFlags.
+  flags: Record<string, FlagValue>;
+  inventory: string[];
   log: (text: string, tone: "flavor" | "system" | "warn") => void;
   openPuzzle: (puzzleId: string) => void;
 }
@@ -37,6 +44,12 @@ async function dispatchOne(action: Action, ctx: DispatchContext): Promise<void> 
     case "showText": {
       if (action.onlyIfFlagUnset && localFlags.has(action.onlyIfFlagUnset)) return;
       if (action.onlyIfFlagSet && !localFlags.has(action.onlyIfFlagSet)) return;
+      if (
+        action.when &&
+        !evaluateCondition(action.when, { flags: ctx.flags, inventory: ctx.inventory })
+      ) {
+        return;
+      }
       ctx.log(action.text, action.tone);
       if (action.setFlagAfter) markLocalFlag(action.setFlagAfter);
       return;
@@ -73,6 +86,15 @@ async function dispatchOne(action: Action, ctx: DispatchContext): Promise<void> 
     case "escapePrison":
       // Scene change + party noise reset arrive via realtime; nothing local.
       await escapePrison(ctx.sessionId);
+      return;
+
+    case "setPartyFlag":
+      // Allowlisted server-side; the reveal itself arrives via realtime.
+      await setPartyFlag(ctx.sessionId, action.flag);
+      return;
+
+    case "pulse":
+      useSessionStore.getState().triggerPulse(action.id);
       return;
 
     case "armSpire": {

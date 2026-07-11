@@ -10,6 +10,7 @@ export const SceneIdSchema = z.enum([
   "vault",
   "spire",
   "prison",
+  "prison-corridor",
 ]);
 
 export type SceneId = z.infer<typeof SceneIdSchema>;

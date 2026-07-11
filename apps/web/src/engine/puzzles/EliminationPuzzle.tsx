@@ -20,7 +20,6 @@ export function EliminationPuzzle({
     (p): p is EliminationPuzzleContent => p.id === puzzleId && p.kind === "elimination",
   );
   const [pending, setPending] = useState<string | null>(null);
-  const [solved, setSolved] = useState(false);
 
   if (!puzzle) return null;
 
@@ -29,9 +28,15 @@ export function EliminationPuzzle({
     try {
       const result = await submitPuzzleAttempt(sessionId, puzzleId, { choice: optionId });
       if (result.correct) {
-        setSolved(true);
-        log(`You examine the ${labelFor(puzzle, optionId)}. It doesn't react.`, "flavor");
+        // Auto-close on solve, matching the dial and sequence puzzles --
+        // the payoff plays out in the scene, not behind a modal.
+        log(
+          puzzle.solvedText ??
+            `You examine the ${labelFor(puzzle, optionId)}. It doesn't react.`,
+          "system",
+        );
         onSolved();
+        onClose();
       } else {
         const option = puzzle.options.find((o) => o.id === optionId);
         log(option?.wrongFlavor ?? "That was the wrong choice.", "warn");
@@ -52,7 +57,7 @@ export function EliminationPuzzle({
               key={option.id}
               type="button"
               className="puzzle-option"
-              disabled={pending !== null || solved}
+              disabled={pending !== null}
               onClick={() => void handleChoose(option.id)}
             >
               {option.label}
@@ -60,7 +65,7 @@ export function EliminationPuzzle({
           ))}
         </div>
         <button type="button" className="puzzle-close" onClick={onClose}>
-          {solved ? "Close" : "Step back"}
+          Step back
         </button>
       </div>
     </div>

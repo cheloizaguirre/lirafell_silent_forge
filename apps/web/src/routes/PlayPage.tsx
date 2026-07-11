@@ -11,6 +11,7 @@ import type { NoiseEvent } from "../lib/sessionApi";
 import { EliminationPuzzle } from "../engine/puzzles/EliminationPuzzle";
 import { NumericDialPuzzle } from "../engine/puzzles/NumericDialPuzzle";
 import { OrderedSequencePuzzle } from "../engine/puzzles/OrderedSequencePuzzle";
+import { ItemSpritePixel } from "../scenes/pixel/ItemSpritePixel";
 
 interface LogEntry {
   text: string;
@@ -108,7 +109,15 @@ export function PlayPage() {
         <div className="play-main">
           <div className="objective">
             <b>Inventory</b>
-            {sessionState.inventory.length > 0 ? sessionState.inventory.join(", ") : "empty-handed"}
+            {sessionState.inventory.length > 0 ? (
+              <span className="inventory-items">
+                {sessionState.inventory.map((itemId) => (
+                  <ItemSpritePixel key={itemId} itemId={itemId} />
+                ))}
+              </span>
+            ) : (
+              "empty-handed"
+            )}
           </div>
 
           <div className="scene-wrap">

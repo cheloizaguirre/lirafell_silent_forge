@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Buf } from "./pixelCanvas";
+import type { Buf, RGB } from "./pixelCanvas";
 import { fillRect, ditherRect, disc, ditherDisc, set, sprite, rgb } from "./pixelCanvas";
 
 // Shared dressing for the 8-bit scenes: the palette, the dungeon room shell
@@ -146,6 +146,27 @@ export function drawSpireTop(buf: Buf): void {
   // edge vignette (the sky is already dark; the sides still need the pull)
   ditherRect(buf, 0, 0, 8, H, PAL.black);
   ditherRect(buf, W - 8, 0, 8, H, PAL.black);
+}
+
+// 3x5 pixel digits. Digits are the one kind of text that works as canvas
+// pixels (design rule #1); currently used for the 2-0-1-3 code note behind
+// the prison brick.
+const DIGITS: Record<string, string[]> = {
+  "0": ["XXX", "X.X", "X.X", "X.X", "XXX"],
+  "1": [".X.", "XX.", ".X.", ".X.", "XXX"],
+  "2": ["XXX", "..X", "XXX", "X..", "XXX"],
+  "3": ["XXX", "..X", ".XX", "..X", "XXX"],
+};
+
+// Draws a digit string (e.g. "2013") at 3x5 per glyph with a 1px gap; any
+// non-digit character advances the cursor (renders as a space).
+export function drawDigits(buf: Buf, x: number, y: number, text: string, color: RGB): void {
+  let cx = x;
+  for (const ch of text) {
+    const glyph = DIGITS[ch];
+    if (glyph) sprite(buf, cx, y, glyph, color);
+    cx += 4;
+  }
 }
 
 export function drawTorch(buf: Buf, x: number, y: number, frame: number): void {

@@ -6,7 +6,6 @@ import {
   frameRect,
   ditherRect,
   disc,
-  ditherDisc,
   ring,
   set,
   blit,
@@ -37,9 +36,10 @@ function eye(buf: Buf, x: number, y: number, lit: boolean, frame: number): void 
 }
 
 // Museum display case: wood cabinet, brass studs, a glass window over a dark
-// mortar-toned interior with a spotlight halo behind the specimen (the grey
-// automatons drowned on a grey slate backing -- user catch), a steel plinth,
-// and an engraved brass nameplate.
+// mortar-toned interior (the grey automatons drowned on a grey slate backing
+// -- user catch; the case-light halo tried after that was cut by feedback as
+// confusing, so the dark interior alone carries the contrast), a steel
+// plinth, and an engraved brass nameplate.
 function drawCase(buf: Buf, x: number): void {
   fillRect(buf, x + 2, 74, 2, 4, PAL.woodDark);
   fillRect(buf, x + 18, 74, 2, 4, PAL.woodDark);
@@ -48,9 +48,8 @@ function drawCase(buf: Buf, x: number): void {
   for (let dx = 1; dx < 21; dx++) set(buf, x + dx, 30, PAL.woodLight);
   set(buf, x + 1, 31, PAL.brassLight);
   set(buf, x + 20, 31, PAL.brassLight);
-  // the glass window: dark interior, case-light halo behind the exhibit
+  // the glass window: dark interior behind the exhibit
   fillRect(buf, x + 2, 33, 18, 32, PAL.mortar);
-  ditherDisc(buf, x + 11, 51, 9, PAL.wallLight);
   fillRect(buf, x + 3, 61, 16, 4, PAL.steelDark);
   for (let dx = 3; dx < 19; dx++) set(buf, x + dx, 61, PAL.steel);
   // sparse diagonal glass glints
@@ -199,7 +198,12 @@ function drawButler(buf: Buf, cx: number, lit: boolean, opened: boolean): void {
 
 const SUSPECTS = [drawSpider, drawOwl, drawHound, drawCannon] as const;
 
-function draw(ctx: CanvasRenderingContext2D, heartFound: boolean, frame: number): void {
+function draw(
+  ctx: CanvasRenderingContext2D,
+  heartFound: boolean,
+  frame: number,
+  eyeFrame: number,
+): void {
   const buf = createBuf(W, H, PAL.wall);
   drawRoom(buf);
 
@@ -210,7 +214,9 @@ function draw(ctx: CanvasRenderingContext2D, heartFound: boolean, frame: number)
   CASE_X.forEach((x, i) => {
     drawCase(buf, x);
     const cx = x + 11;
-    if (i < SUSPECTS.length) SUSPECTS[i](buf, cx, lit, frame);
+    // eyes pulse on their own slower clock (feedback: the 600ms pulse was
+    // too obvious); torches keep the standard flicker.
+    if (i < SUSPECTS.length) SUSPECTS[i](buf, cx, lit, eyeFrame);
     else drawButler(buf, cx, lit, heartFound);
   });
 
@@ -220,19 +226,23 @@ function draw(ctx: CanvasRenderingContext2D, heartFound: boolean, frame: number)
 export function GalleryArtPixel({ flags }: ArtProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const frame = usePixelFrame();
+  const eyeFrame = usePixelFrame(1800);
   const heartFound = flags.heartFound === true;
+  const clueFound = flags.galleryClueFound === true;
 
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
-    if (ctx) draw(ctx, heartFound, frame);
-  }, [heartFound, frame]);
+    if (ctx) draw(ctx, heartFound, frame, eyeFrame);
+  }, [heartFound, frame, eyeFrame]);
 
   return (
     <div className="scene-pixel">
       <canvas ref={canvasRef} width={W} height={H} className="scene-pixel-canvas" />
-      <span className="pixel-caption" style={{ left: "50%", top: "82%" }}>
-        "Only the one who never sang served faithfully."
-      </span>
+      {clueFound && (
+        <span className="pixel-caption" style={{ left: "50%", top: "82%" }}>
+          "Only the one who never sang served faithfully."
+        </span>
+      )}
     </div>
   );
 }
