@@ -114,6 +114,29 @@ main {
   display: block;
   margin-bottom: 3px;
 }
+/* Player inventory as pixel item sprites (heart / lens / valve). */
+.inventory-items {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  vertical-align: middle;
+}
+.inventory-item canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+/* Visually hidden, still read by screen readers (and textContent checks). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 .noise-row {
   display: flex;
@@ -177,7 +200,7 @@ main {
 }
 .noise-bang-big svg {
   width: min(55%, 360px);
-  animation: bang-pop 1.2s ease-out forwards;
+  animation: bang-pop 1.7s ease-out forwards;
 }
 .noise-bang-small {
   top: 12px;
@@ -185,7 +208,7 @@ main {
 }
 .noise-bang-small svg {
   width: 88px;
-  animation: bang-pop 1.2s ease-out forwards;
+  animation: bang-pop 1.7s ease-out forwards;
 }
 @keyframes bang-pop {
   0% {
@@ -639,6 +662,59 @@ main {
 .dm-override-row button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* ---- 8-bit prototype (proto-vault-8bit) --------------------------------- */
+.scene-pixel {
+  position: absolute;
+  inset: 0;
+}
+.scene-pixel-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+/* Rune labels stay HTML (readable text has no business being 3px tall);
+   they carry the data-converge/data-lit hooks the verify suite reads. */
+.pixel-rune {
+  position: absolute;
+  top: 76%;
+  transform: translateX(-50%);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #8b90a4;
+  /* legible over the busy game-style floor */
+  background: rgba(11, 12, 14, 0.7);
+  padding: 1px 6px;
+}
+.pixel-rune[data-lit="true"] {
+  color: var(--accent-bright);
+  text-shadow: 0 0 8px rgba(201, 163, 255, 0.6);
+}
+.pixel-rune-won {
+  color: var(--accent-bright);
+  text-shadow: 0 0 8px rgba(201, 163, 255, 0.6);
+  /* legible over the victory dither */
+  background: rgba(11, 12, 14, 0.8);
+  padding: 2px 8px;
+  font-size: 14px;
+}
+/* In-scene inscriptions (clues painted on the art in the SVG originals) --
+   readable HTML over the canvas, same rule as the rune labels. */
+.pixel-caption {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #8b90a4;
+  background: rgba(11, 12, 14, 0.7);
+  padding: 1px 6px;
+  pointer-events: none;
 }
 
 .dm-cheatsheet {

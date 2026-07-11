@@ -13,9 +13,13 @@ export const puzzles: PuzzleContent[] = [
     id: "workshop-valves",
     sceneId: "workshop",
     title: "Pressure Valves",
-    prompt: "Four numbered valves crown the pipe assembly, each dial cycling 0 through 3. Above them, a faded engraving reads: 2 – 0 – 1 – 3.",
+    // The code (2-0-1-3) is no longer engraved here -- it hides behind the
+    // prison cell's loose brick. Capture is the intended route to it.
+    prompt:
+      "Four numbered valves crown the pipe assembly, each dial cycling 0 through 3. Whatever setting the pipes want, nothing here says it.",
     onFailNoise: 30,
-    wrongText: "Wrong pressure. The pipes SHRIEK and rattle violently — that was LOUD.",
+    wrongText:
+      "Wrong pressure. The pipes SHRIEK and rattle violently — one deafening BANG for every valve that fought the setting.",
     solvedText:
       "The pipes shudder, then settle into a low, satisfied hum. A small brass valve key pops loose into your hand.",
     dials: [
@@ -31,9 +35,13 @@ export const puzzles: PuzzleContent[] = [
     id: "archive-books",
     sceneId: "archive",
     title: "The Colored Tomes",
-    prompt: 'Four tomes stand in the shelf: violet, ash, black, and ember. A small plaque reads: "Violet before Ash, Ash before Ember."',
-    onFailNoise: 0,
-    wrongText: "The shelf shifts, unimpressed, and resets itself.",
+    // The order clue ("Violet before Ash, Ash before Ember") is no longer
+    // printed here -- it hides on the bookshelf's upper shelf.
+    prompt:
+      "Four tomes stand in the shelf: violet, ash, black, and ember. Their spines are worn from being pulled in some particular order.",
+    onFailNoise: 30,
+    wrongText:
+      "The shelf SLAMS the tomes back into place, the whole case booming against the wall — that was LOUD.",
     solvedText:
       "The three tomes click into alignment. A compartment behind the shelf swings open, revealing a lens of faintly violet glass — the Aether Lens.",
     items: [
@@ -71,8 +79,13 @@ export const puzzles: PuzzleContent[] = [
     id: "gallery-elimination",
     sceneId: "gallery",
     title: "Gallery of Automatons",
-    prompt: 'A plaque reads: "Only the one who never sang served faithfully." Four of these five automatons will trigger a loud alarm if disturbed.',
+    // The riddle ("Only the one who never sang served faithfully.") is no
+    // longer posted here -- it hides on a note behind the piston hound's case.
+    prompt:
+      "Five automatons watch from their cases. Four of them will trigger a loud alarm if disturbed; nothing marks which one is safe.",
     onFailNoise: 30,
+    solvedText:
+      "The Silent Butler does not react — but its chest panel clicks and swings open. Inside, nested where a boiler should be, sits a slow-ticking Cogwork Heart. You lift it free.",
     options: [
       {
         id: "spider",

@@ -18,6 +18,9 @@ export interface NoiseEvent {
   seq: number;
   by: string;
   amount: number;
+  // How many BANGs to render (1-4). Wrong valve attempts bang once per wrong
+  // dial; every other noise source defaults to 1. Absent on pre-existing rows.
+  bangs?: number;
 }
 
 export type FlagValue = boolean | number | string | NoiseEvent;
@@ -45,6 +48,13 @@ export async function joinSession(code: string, displayName: string) {
     .single<{ session_id: string }>();
   if (error) throw error;
   return data;
+}
+
+// DM-only. Completed sessions stop matching findExistingPlayerRow's
+// active filter, so this is what frees the DM to start a clean run.
+export async function endSession(sessionId: string) {
+  const { error } = await supabase.rpc("end_session", { p_session_id: sessionId });
+  if (error) throw error;
 }
 
 export async function setCurrentScene(sessionId: string, sceneId: string) {
@@ -108,6 +118,16 @@ export async function escapePrison(sessionId: string) {
   if (error) throw error;
 }
 
+// Sets a party-shared flag. The RPC allowlists which keys players may set
+// (clue reveals only) -- anything else raises server-side.
+export async function setPartyFlag(sessionId: string, flag: string) {
+  const { error } = await supabase.rpc("set_party_flag", {
+    p_session_id: sessionId,
+    p_flag: flag,
+  });
+  if (error) throw error;
+}
+
 export async function dmForceScene(sessionId: string, playerId: string, sceneId: string) {
   const { error } = await supabase.rpc("dm_force_scene", {
     p_session_id: sessionId,
@@ -148,6 +168,16 @@ export async function dmGrantItem(sessionId: string, itemId: string) {
   const { error } = await supabase.rpc("dm_grant_item", {
     p_session_id: sessionId,
     p_item_id: itemId,
+  });
+  if (error) throw error;
+}
+
+// DM-only: hides/shows the Workshop's Dormant Warden (sprite + hotspot) for
+// the whole party. Groundwork for the future noise jump-scare.
+export async function dmSetWardenHidden(sessionId: string, hidden: boolean) {
+  const { error } = await supabase.rpc("dm_set_warden_hidden", {
+    p_session_id: sessionId,
+    p_hidden: hidden,
   });
   if (error) throw error;
 }

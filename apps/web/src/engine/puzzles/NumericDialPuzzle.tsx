@@ -21,7 +21,6 @@ export function NumericDialPuzzle({
   );
   const [values, setValues] = useState<number[]>(() => puzzle?.dials.map((d) => d.min) ?? []);
   const [pending, setPending] = useState(false);
-  const [solved, setSolved] = useState(false);
 
   if (!puzzle) return null;
 
@@ -37,9 +36,11 @@ export function NumericDialPuzzle({
     try {
       const result = await submitPuzzleAttempt(sessionId, puzzleId, { dials: values });
       if (result.correct) {
-        setSolved(true);
+        // Auto-close on solve, matching OrderedSequencePuzzle -- locking the
+        // dial IS the end of the interaction.
         log(puzzle.solvedText ?? "It clicks into place.", "system");
         onSolved();
+        onClose();
       } else {
         log(puzzle.wrongText ?? "Nothing happens.", "warn");
         // PoC behavior: a failed pressure test slams every valve back to zero.
@@ -61,7 +62,7 @@ export function NumericDialPuzzle({
               key={dial.id}
               type="button"
               className="puzzle-option puzzle-dial"
-              disabled={pending || solved}
+              disabled={pending}
               aria-label={`${dial.label}, currently ${dial.valueLabels?.[values[i]] ?? values[i]}`}
               onClick={() => cycleDial(i)}
             >
@@ -73,13 +74,13 @@ export function NumericDialPuzzle({
         <button
           type="button"
           className="puzzle-option"
-          disabled={pending || solved}
+          disabled={pending}
           onClick={() => void handleSubmit()}
         >
           {puzzle.submitLabel}
         </button>
         <button type="button" className="puzzle-close" onClick={onClose}>
-          {solved ? "Close" : "Step back"}
+          Step back
         </button>
       </div>
     </div>

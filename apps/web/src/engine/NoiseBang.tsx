@@ -20,7 +20,7 @@ const BURST_POINTS = Array.from({ length: 24 }, (_, i) => {
   return `${(100 + r * Math.cos(angle)).toFixed(1)},${(75 + r * 0.72 * Math.sin(angle)).toFixed(1)}`;
 }).join(" ");
 
-const BANG_MS = 1200;
+const BANG_MS = 1700;
 
 export function NoiseBang({
   event,
@@ -30,10 +30,15 @@ export function NoiseBang({
   selfPlayerId: string | null;
 }) {
   const lastSeq = useRef<number | null>(null);
-  const [bang, setBang] = useState<{ kind: "big" | "small"; seq: number } | null>(null);
+  const [bang, setBang] = useState<{ kind: "big" | "small"; seq: number; count: number } | null>(
+    null,
+  );
 
   const seq = event?.seq ?? 0;
   const by = event?.by;
+  // 1-4 BANGs; wrong valve attempts bang once per wrong dial (Mastermind-style
+  // feedback, intended). Events without `bangs` (older rows) bang once.
+  const bangs = Math.max(1, Math.min(4, event?.bangs ?? 1));
 
   useEffect(() => {
     if (lastSeq.current === null) {
@@ -42,16 +47,27 @@ export function NoiseBang({
     }
     if (seq <= lastSeq.current) return;
     lastSeq.current = seq;
-    setBang({ kind: by === selfPlayerId ? "big" : "small", seq });
+    setBang({ kind: by === selfPlayerId ? "big" : "small", seq, count: bangs });
     const timer = setTimeout(() => setBang(null), BANG_MS);
     return () => clearTimeout(timer);
-  }, [seq, by, selfPlayerId]);
+  }, [seq, by, bangs, selfPlayerId]);
 
   if (!bang) return null;
 
+  // Stack the words inside the burst's inner radius, shrinking as the count
+  // grows so four still fit.
+  const fontSize = [bang.kind === "big" ? 30 : 34, 24, 20, 16][bang.count - 1];
+  const lineGap = [0, 30, 25, 21][bang.count - 1];
+  const firstY = 76 - (lineGap * (bang.count - 1)) / 2;
+
   return (
     // key restarts the CSS animation when a second bang lands mid-fade
-    <div key={bang.seq} className={`noise-bang noise-bang-${bang.kind}`} aria-hidden="true">
+    <div
+      key={bang.seq}
+      className={`noise-bang noise-bang-${bang.kind}`}
+      data-bangs={bang.count}
+      aria-hidden="true"
+    >
       <svg viewBox="0 0 200 150">
         {/* style, not presentation attributes: var() only substitutes in CSS */}
         <polygon
@@ -60,18 +76,21 @@ export function NoiseBang({
           strokeWidth="3"
           strokeLinejoin="round"
         />
-        <text
-          x="100"
-          y="76"
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontFamily="Cinzel, serif"
-          fontWeight="700"
-          fontSize={bang.kind === "big" ? 30 : 34}
-          fill="#fff"
-        >
-          BANG!
-        </text>
+        {Array.from({ length: bang.count }, (_, i) => (
+          <text
+            key={i}
+            x="100"
+            y={firstY + i * lineGap}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontFamily="Cinzel, serif"
+            fontWeight="700"
+            fontSize={fontSize}
+            fill="#fff"
+          >
+            BANG!
+          </text>
+        ))}
       </svg>
     </div>
   );

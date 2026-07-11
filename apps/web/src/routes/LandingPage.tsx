@@ -1,14 +1,26 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ensureAnonymousSession } from "../lib/auth";
-import { createSession, findExistingPlayerRow } from "../lib/sessionApi";
+import { createSession, endSession, findExistingPlayerRow } from "../lib/sessionApi";
 import { supabase } from "../lib/supabaseClient";
+
+interface ExistingRun {
+  sessionId: string;
+  code: string;
+  role: "dm" | "player";
+}
 
 export function LandingPage() {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [existing, setExisting] = useState<ExistingRun | null>(null);
+
+  const startFresh = async (name: string) => {
+    const { code } = await createSession(name);
+    navigate(`/dm/${code}`);
+  };
 
   const handleCreate = async () => {
     if (!displayName.trim()) {
@@ -19,20 +31,42 @@ export function LandingPage() {
     setError(null);
     try {
       const userId = await ensureAnonymousSession();
-      const existing = await findExistingPlayerRow(userId);
-      if (existing) {
+      const found = await findExistingPlayerRow(userId);
+      if (found) {
         const { data: session } = await supabase
           .from("sessions")
           .select("code")
-          .eq("id", existing.session_id)
+          .eq("id", found.session_id)
           .single();
         if (session) {
-          navigate(existing.role === "dm" ? `/dm/${session.code}` : `/play/${session.code}`);
+          setExisting({ sessionId: found.session_id, code: session.code, role: found.role });
           return;
         }
       }
-      const { code } = await createSession(displayName.trim());
-      navigate(`/dm/${code}`);
+      await startFresh(displayName.trim());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleResume = () => {
+    if (!existing) return;
+    navigate(existing.role === "dm" ? `/dm/${existing.code}` : `/play/${existing.code}`);
+  };
+
+  // A DM's old run is ended (status -> completed) so it can't resurface;
+  // a player can't end someone else's session, so theirs is just left behind.
+  const handleStartFresh = async () => {
+    if (!existing) return;
+    setBusy(true);
+    setError(null);
+    try {
+      if (existing.role === "dm") {
+        await endSession(existing.sessionId);
+      }
+      await startFresh(displayName.trim());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -48,12 +82,34 @@ export function LandingPage() {
       <input
         id="display-name"
         value={displayName}
-        onChange={(e) => setDisplayName(e.target.value)}
+        onChange={(e) => {
+          setDisplayName(e.target.value);
+          setExisting(null);
+        }}
         placeholder="Chelo"
       />
-      <button type="button" disabled={busy} onClick={() => void handleCreate()}>
-        {busy ? "Starting..." : "Start a new quest (as DM)"}
-      </button>
+      {existing ? (
+        <>
+          <p style={{ fontSize: 14 }}>
+            You already have a quest running as {existing.role === "dm" ? "DM" : "a player"} (code{" "}
+            <code>{existing.code}</code>).
+          </p>
+          <button type="button" disabled={busy} onClick={handleResume}>
+            Resume that quest
+          </button>
+          <button type="button" disabled={busy} onClick={() => void handleStartFresh()}>
+            {busy
+              ? "Starting..."
+              : existing.role === "dm"
+                ? "End it and start fresh"
+                : "Leave it and start fresh"}
+          </button>
+        </>
+      ) : (
+        <button type="button" disabled={busy} onClick={() => void handleCreate()}>
+          {busy ? "Starting..." : "Start a new quest (as DM)"}
+        </button>
+      )}
       {error && <p className="error">{error}</p>}
       <p style={{ marginTop: 20, fontSize: 14, color: "var(--muted)" }}>
         Have a join code from your DM? Go to <code>/join/&lt;code&gt;</code>.

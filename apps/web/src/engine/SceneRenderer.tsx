@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { scenes } from "@silent-forge/content";
 import type { Hotspot } from "@silent-forge/content";
 import { sceneRegistry } from "./sceneRegistry";
@@ -24,9 +24,14 @@ export function SceneRenderer({
 }) {
   const scene = scenes.find((s) => s.id === sceneId);
 
+  // Guards StrictMode's dev-only double effect run: without it every onEnter
+  // description prints twice under the dev server (where verify runs too).
+  const enteredSceneRef = useRef<string | null>(null);
   useEffect(() => {
+    if (enteredSceneRef.current === sceneId) return;
+    enteredSceneRef.current = sceneId;
     if (scene?.onEnter?.length) {
-      void dispatchActions(scene.onEnter, { sessionId, log, openPuzzle });
+      void dispatchActions(scene.onEnter, { sessionId, flags, inventory, log, openPuzzle });
     }
     // only re-fire when the scene actually changes, not on every log/openPuzzle identity change
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,7 +48,7 @@ export function SceneRenderer({
   );
 
   const handleActivate = (hotspot: Hotspot) => {
-    void dispatchActions(hotspot.actions, { sessionId, log, openPuzzle });
+    void dispatchActions(hotspot.actions, { sessionId, flags, inventory, log, openPuzzle });
   };
 
   return (

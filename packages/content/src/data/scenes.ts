@@ -13,14 +13,23 @@ export const scenes: Scene[] = [
     id: "entrance",
     name: "Entrance Hall",
     art: { component: "EntranceArt" },
+    onEnter: [
+      {
+        type: "showText",
+        text: "Cold air, machine oil, and dust. The entrance hall of Voss's atelier is silent but for a guttering candle on a writing desk. A brass automaton lies slumped against the wall, and the great door into the workshop looms ahead.",
+        tone: "system",
+      },
+    ],
     hotspots: [
       {
         id: "great-door",
         label: "Great Door (enter workshop)",
-        x: 38,
-        y: 20,
-        w: 26,
-        h: 70,
+        // proto-vault-8bit feedback: raised to frame the whole arch (stone
+        // surround y11-80px) instead of hanging low past the threshold.
+        x: 37,
+        y: 12,
+        w: 27,
+        h: 68,
         actions: [
           {
             type: "showText",
@@ -33,10 +42,12 @@ export const scenes: Scene[] = [
       {
         id: "slumped-automaton",
         label: "Slumped Automaton",
-        x: 24,
-        y: 62,
-        w: 12,
-        h: 22,
+        // proto-vault-8bit: grown to cover the pixel colossus (head included);
+        // the SVG original's box was x24,y62,w12,h22.
+        x: 22,
+        y: 44,
+        w: 17,
+        h: 42,
         actions: [
           {
             type: "showText",
@@ -48,23 +59,19 @@ export const scenes: Scene[] = [
       {
         id: "writing-desk",
         label: "Writing Desk",
-        x: 70,
-        y: 68,
-        w: 14,
-        h: 16,
+        // proto-vault-8bit feedback: grown to cover the full desk sprite
+        // including the note and candle flame (art x111-131px, y66-87px).
+        x: 68,
+        y: 66,
+        w: 16,
+        h: 24,
         actions: [
+          // One merged message, printed on every click (feedback fix for the
+          // old first-read/re-read flag pair double-printing).
           {
             type: "showText",
-            text: 'A hurried note, half-burned at the edges: "The defenses still watch. Do NOT make noise — the Warden cannot be fought, only avoided. If it catches you, it will not kill you... but you will not enjoy the cell." — signed with an unfamiliar hand.',
+            text: 'A hurried note, half-burned at the edges: "The defenses still watch. Do NOT make noise — the Warden cannot be fought, only avoided. If it catches you, it will not kill you... but you will not enjoy the cell." — signed with an unfamiliar hand. Its warning still stands.',
             tone: "system",
-            onlyIfFlagUnset: "metWarden",
-            setFlagAfter: "metWarden",
-          },
-          {
-            type: "showText",
-            text: "The note says nothing new. Its warning about the Warden still stands.",
-            tone: "flavor",
-            onlyIfFlagSet: "metWarden",
           },
         ],
       },
@@ -74,6 +81,22 @@ export const scenes: Scene[] = [
     id: "workshop",
     name: "Workshop Floor",
     art: { component: "WorkshopArt" },
+    // Two mutually exclusive variants: don't narrate the Warden when the DM
+    // has hidden it (`when` gates on party flags; an unset flag reads false).
+    onEnter: [
+      {
+        type: "showText",
+        text: "The workshop floor sprawls beneath a groaning web of pipes. A heavy vault door is set high in the far wall, doorways lead off to the archive and the gallery — and an enormous steam-golem stands dormant in its alcove. Quietly, now.",
+        tone: "system",
+        when: { flag: "wardenHidden", equals: false },
+      },
+      {
+        type: "showText",
+        text: "The workshop floor sprawls beneath a groaning web of pipes. A heavy vault door is set high in the far wall, and doorways lead off to the archive and the gallery. The warden's alcove stands empty.",
+        tone: "system",
+        when: { flag: "wardenHidden", equals: true },
+      },
+    ],
     hotspots: [
       {
         // Not in the PoC (which had no way back at all) -- added in Phase 7
@@ -91,10 +114,14 @@ export const scenes: Scene[] = [
       {
         id: "dormant-warden",
         label: "The Dormant Warden",
-        x: 7,
-        y: 18,
-        w: 12,
-        h: 46,
+        // proto-vault-8bit: grown to cover the pixel colossus in its alcove,
+        // then shifted further right (feedback) to clear the archive doorway;
+        // the SVG original's box was x7,y18,w12,h46. Hidden when the DM
+        // toggles the warden away (future jump-scare hook).
+        x: 15,
+        y: 16,
+        w: 15,
+        h: 62,
         actions: [
           {
             type: "showText",
@@ -102,14 +129,17 @@ export const scenes: Scene[] = [
             tone: "flavor",
           },
         ],
+        visibleWhen: { flag: "wardenHidden", equals: false },
       },
       {
         id: "pressure-valves",
         label: "Pressure Valves",
+        // proto-vault-8bit feedback: the pipe run dropped to knee height
+        // (art run y66-69px, wheels y64-70, drops to the floor seam).
         x: 36,
-        y: 30,
+        y: 58,
         w: 29,
-        h: 14,
+        h: 16,
         actions: [{ type: "openPuzzle", puzzleId: "workshop-valves" }],
         visibleWhen: { flag: "valveFound", equals: false },
       },
@@ -117,9 +147,9 @@ export const scenes: Scene[] = [
         id: "pressure-valves-solved",
         label: "Pressure Valves",
         x: 36,
-        y: 30,
+        y: 58,
         w: 29,
-        h: 14,
+        h: 16,
         actions: [
           {
             type: "showText",
@@ -132,10 +162,12 @@ export const scenes: Scene[] = [
       {
         id: "workbench",
         label: "Workbench",
-        x: 76,
-        y: 60,
-        w: 19,
-        h: 10,
+        // proto-vault-8bit feedback: bench shifted left to clear the gallery
+        // doorway (art x110-139px, tools y58-62, legs to the floor seam).
+        x: 67,
+        y: 56,
+        w: 20,
+        h: 24,
         actions: [
           {
             type: "showText",
@@ -145,22 +177,34 @@ export const scenes: Scene[] = [
         ],
       },
       {
-        id: "spire-stair",
-        label: "Stairwell to the Spire",
-        x: 25,
-        y: 13,
-        w: 8,
-        h: 20,
-        actions: [{ type: "navigate", sceneId: "spire" }],
-        visibleWhen: { flag: "allPlaced", equals: true },
+        id: "prison-hatch",
+        label: "Floor Hatch",
+        // The duct the party escaped through, propped open -- drops back down
+        // to the corridor side of the prison bars (art x49-59px, y83-89).
+        x: 29,
+        y: 80,
+        w: 10,
+        h: 12,
+        actions: [
+          {
+            type: "showText",
+            text: "You lower yourself into the cramped duct and crawl back the way you once escaped, coming up on the corridor side of the cell bars.",
+            tone: "system",
+          },
+          { type: "navigate", sceneId: "prison-corridor" },
+        ],
+        visibleWhen: { flag: "escapedPrison", equals: true },
       },
       {
         id: "overflow-valve",
         label: "Overflow Valve",
-        x: 67,
-        y: 42,
-        w: 7,
-        h: 10,
+        // proto-vault-8bit feedback: vertical stub rising from the center of
+        // the pipe run (art wheel x76-84px y51-59, stub down to y66, sparks
+        // above), moved off the workbench.
+        x: 45,
+        y: 46,
+        w: 11,
+        h: 22,
         actions: [
           {
             type: "ventOverflow",
@@ -179,10 +223,10 @@ export const scenes: Scene[] = [
       {
         id: "overflow-valve-open",
         label: "Overflow Valve",
-        x: 67,
-        y: 42,
-        w: 7,
-        h: 10,
+        x: 45,
+        y: 46,
+        w: 11,
+        h: 22,
         actions: [
           {
             type: "showText",
@@ -200,28 +244,34 @@ export const scenes: Scene[] = [
       {
         id: "door-archive",
         label: "Door to Archive",
+        // proto-vault-8bit: raised onto the wall as a proper doorway; the
+        // SVG original's floor-corner box was x2,y76,w8,h18.
         x: 2,
-        y: 76,
-        w: 8,
-        h: 18,
+        y: 56,
+        w: 9,
+        h: 22,
         actions: [{ type: "navigate", sceneId: "archive" }],
       },
       {
         id: "door-gallery",
         label: "Door to Gallery",
-        x: 90,
-        y: 76,
-        w: 8,
-        h: 18,
+        // proto-vault-8bit: raised onto the wall as a proper doorway; the
+        // SVG original's floor-corner box was x90,y76,w8,h18.
+        x: 89,
+        y: 56,
+        w: 9,
+        h: 22,
         actions: [{ type: "navigate", sceneId: "gallery" }],
       },
       {
         id: "vault-door",
         label: "Vault Door",
-        x: 45,
+        // proto-vault-8bit feedback: grown to room-door proportions
+        // (art x70-90px, y6-42 including the threshold ledge).
+        x: 43,
         y: 4,
-        w: 10,
-        h: 14,
+        w: 14,
+        h: 38,
         actions: [{ type: "navigate", sceneId: "vault" }],
         visibleWhen: {
           allOf: [
@@ -234,10 +284,10 @@ export const scenes: Scene[] = [
       {
         id: "vault-door-sealed",
         label: "Vault Door",
-        x: 45,
+        x: 43,
         y: 4,
-        w: 10,
-        h: 14,
+        w: 14,
+        h: 38,
         actions: [
           {
             type: "showText",
@@ -261,6 +311,20 @@ export const scenes: Scene[] = [
     id: "gallery",
     name: "Gallery of Automatons",
     art: { component: "GalleryArt" },
+    onEnter: [
+      {
+        type: "showText",
+        text: "Five wood-and-brass display cases line the gallery, each holding a dead-still automaton. Four pairs of ember eyes smolder as you pass. The fifth exhibit, a butler in tarnished livery, watches with one calm pale eye.",
+        tone: "system",
+        when: { flag: "heartFound", equals: false },
+      },
+      {
+        type: "showText",
+        text: "The gallery sits dark and finished. Five automatons stand lifeless in their cases; the Silent Butler's chest panel hangs open and empty.",
+        tone: "system",
+        when: { flag: "heartFound", equals: true },
+      },
+    ],
     hotspots: [
       {
         id: "back-to-workshop",
@@ -298,12 +362,100 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         ],
         visibleWhen: { flag: "heartFound", equals: true },
       },
+      // "Look behind the case" strips along each case's plinth/nameplate zone.
+      // Deliberately AFTER automaton-displays so they stack on top of its big
+      // box (array order is stacking order). Only the hound's hides anything:
+      // the riddle note that used to be a plaque (party flag galleryClueFound).
+      {
+        id: "behind-case-spider",
+        label: "Look behind the Spider's case",
+        x: 7.5,
+        y: 61,
+        w: 13.75,
+        h: 13,
+        actions: [
+          { type: "showText", text: "Nothing here but dust and cobwebs.", tone: "flavor" },
+        ],
+      },
+      {
+        id: "behind-case-owl",
+        label: "Look behind the Owl's case",
+        x: 25,
+        y: 61,
+        w: 13.75,
+        h: 13,
+        actions: [
+          { type: "showText", text: "Nothing here but dust and cobwebs.", tone: "flavor" },
+        ],
+      },
+      {
+        id: "behind-case-hound",
+        label: "Look behind the Hound's case",
+        x: 42.5,
+        y: 61,
+        w: 13.75,
+        h: 13,
+        actions: [
+          { type: "setPartyFlag", flag: "galleryClueFound" },
+          {
+            type: "showText",
+            text: 'Wedged behind the piston hound\'s case, your fingers find a folded slip of paper. In a careful hand it reads: "Only the one who never sang served faithfully."',
+            tone: "system",
+          },
+        ],
+        visibleWhen: { flag: "galleryClueFound", equals: false },
+      },
+      {
+        id: "behind-case-hound-found",
+        label: "Look behind the Hound's case",
+        x: 42.5,
+        y: 61,
+        w: 13.75,
+        h: 13,
+        actions: [
+          {
+            type: "showText",
+            text: 'The paper note rests where it was found: "Only the one who never sang served faithfully."',
+            tone: "flavor",
+          },
+        ],
+        visibleWhen: { flag: "galleryClueFound", equals: true },
+      },
+      {
+        id: "behind-case-cannon",
+        label: "Look behind the Cannon's case",
+        x: 60,
+        y: 61,
+        w: 13.75,
+        h: 13,
+        actions: [
+          { type: "showText", text: "Nothing here but dust and cobwebs.", tone: "flavor" },
+        ],
+      },
+      {
+        id: "behind-case-butler",
+        label: "Look behind the Butler's case",
+        x: 77.5,
+        y: 61,
+        w: 13.75,
+        h: 13,
+        actions: [
+          { type: "showText", text: "Nothing here but dust and cobwebs.", tone: "flavor" },
+        ],
+      },
     ],
   },
   {
     id: "archive",
     name: "Archive & Study",
     art: { component: "ArchiveArt" },
+    onEnter: [
+      {
+        type: "showText",
+        text: "Paper dust hangs in the Archive's still air. A great bookshelf dominates the left wall, four fat colored tomes wedged among the clutter. A memory lens waits on its pedestal, and a locked cabinet sulks in the corner.",
+        tone: "system",
+      },
+    ],
     hotspots: [
       {
         id: "back-to-workshop",
@@ -341,39 +493,89 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         ],
         visibleWhen: { flag: "lensFound", equals: true },
       },
+      // Top shelf hides the order clue that used to be a plaque; the middle
+      // shelf is honest dust. Both sit above the colored-tomes box.
+      {
+        id: "shelf-top",
+        label: "Search the top shelf",
+        x: 6,
+        y: 20,
+        w: 30,
+        h: 12,
+        actions: [
+          { type: "setPartyFlag", flag: "archiveClueFound" },
+          {
+            type: "showText",
+            text: 'Tucked behind the top shelf\'s spines, your fingers find a slip of paper in a careful hand: "Violet before Ash, Ash before Ember."',
+            tone: "system",
+          },
+        ],
+        visibleWhen: { flag: "archiveClueFound", equals: false },
+      },
+      {
+        id: "shelf-top-found",
+        label: "Search the top shelf",
+        x: 6,
+        y: 20,
+        w: 30,
+        h: 12,
+        actions: [
+          {
+            type: "showText",
+            text: 'The slip of paper rests where it was found: "Violet before Ash, Ash before Ember."',
+            tone: "flavor",
+          },
+        ],
+        visibleWhen: { flag: "archiveClueFound", equals: true },
+      },
+      {
+        id: "shelf-middle",
+        label: "Search the middle shelf",
+        x: 6,
+        y: 33,
+        w: 30,
+        h: 13,
+        actions: [
+          { type: "showText", text: "Nothing here but dust and cobwebs.", tone: "flavor" },
+        ],
+      },
       {
         id: "memory-lens",
         label: "Memory Imprint Lens",
-        x: 60,
-        y: 55,
-        w: 8,
-        h: 28,
+        // proto-vault-8bit feedback: grown to cover ring + glass + pedestal
+        // (art x97-110px, y53-78). Hidden while "Realign the Lens" is live so
+        // the two zones never overlap.
+        x: 59,
+        y: 50,
+        w: 10,
+        h: 30,
         actions: [
+          // One merged message, printed on every click (feedback fix for the
+          // old first-listen/re-listen flag pair double-printing).
           {
             type: "showText",
             text: 'You turn the brass dial. A recorded voice crackles to life, thin and tired: "...if you are hearing this, I am long gone, and the wardens still walk. I built them to guard what should not be woken carelessly. Three keys still my work: a heart that beats without blood, a lens that bends light no eye can see, and a valve that holds back the pressure of a mountain. Silence them all at once, in the antechamber, and the field will fall... Forgive me for what I could not finish." The recording fades to static.',
             tone: "system",
-            onlyIfFlagUnset: "heardVossRecording",
-            setFlagAfter: "heardVossRecording",
-          },
-          {
-            type: "showText",
-            text: "The recording crackles through once more, no less tired the second time. Three keys: a heart, a lens, a valve — silenced together in the antechamber.",
-            tone: "flavor",
-            onlyIfFlagSet: "heardVossRecording",
           },
         ],
+        // Hidden exactly while lens-realign is live (feedback: the stale
+        // recording zone overlapped the realign zone).
+        visibleWhen: {
+          anyOf: [
+            { flag: "armed", equals: false },
+            { flag: "aligned", equals: true },
+          ],
+        },
       },
-      // Deliberately AFTER memory-lens in this array so it stacks on top of
-      // the overlapping memory-lens hotspot while active (PoC parity: the
-      // realign controls cover the recording dial until the lens locks).
       {
         id: "lens-realign",
         label: "Realign the Lens",
-        x: 60,
-        y: 55,
-        w: 8,
-        h: 23,
+        // Same box as memory-lens -- exactly one of the two is visible at a
+        // time (memory-lens hides while armed && !aligned).
+        x: 59,
+        y: 50,
+        w: 10,
+        h: 30,
         actions: [{ type: "openPuzzle", puzzleId: "archive-lens" }],
         visibleWhen: {
           allOf: [
@@ -403,6 +605,83 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
     id: "vault",
     name: "Vault Antechamber",
     art: { component: "VaultArt" },
+    // Mutually exclusive entry texts tracking the three convergence diamonds
+    // (feedback: the vault should announce which sigils are active on entry).
+    // vent and align are independent once armed, so both orders get a variant.
+    onEnter: [
+      {
+        type: "showText",
+        text: "The vault antechamber. A chunky steel containment ring is set into the far wall above a stone pedestal — three empty sockets shaped for a heart, a lens, and a valve.",
+        tone: "system",
+        when: { flag: "allPlaced", equals: false },
+      },
+      {
+        type: "showText",
+        text: "The three components hum in their sockets. Along the floor, three dim diamond sigils wait unlit — spire armed, pressure vented, lens aligned — and a stairwell to the Spire stands open in the wall.",
+        tone: "system",
+        when: {
+          allOf: [
+            { flag: "allPlaced", equals: true },
+            { flag: "armed", equals: false },
+          ],
+        },
+      },
+      {
+        type: "showText",
+        text: "The SPIRE ARMED sigil burns violet on the floor — the lever above has been thrown. The pressure-vented and lens-aligned diamonds still wait dark.",
+        tone: "system",
+        when: {
+          allOf: [
+            { flag: "armed", equals: true },
+            { flag: "vented", equals: false },
+            { flag: "aligned", equals: false },
+          ],
+        },
+      },
+      {
+        type: "showText",
+        text: "Two sigils burn on the floor — SPIRE ARMED and PRESSURE VENTED. Only the lens-aligned diamond still waits dark.",
+        tone: "system",
+        when: {
+          allOf: [
+            { flag: "armed", equals: true },
+            { flag: "vented", equals: true },
+            { flag: "aligned", equals: false },
+          ],
+        },
+      },
+      {
+        type: "showText",
+        text: "Two sigils burn on the floor — SPIRE ARMED and LENS ALIGNED. Only the pressure-vented diamond still waits dark.",
+        tone: "system",
+        when: {
+          allOf: [
+            { flag: "armed", equals: true },
+            { flag: "vented", equals: false },
+            { flag: "aligned", equals: true },
+          ],
+        },
+      },
+      {
+        type: "showText",
+        text: "All three diamond sigils burn bright along the floor — SPIRE ARMED, PRESSURE VENTED, LENS ALIGNED. The containment ring thrums, waiting for the convergence.",
+        tone: "system",
+        when: {
+          allOf: [
+            { flag: "armed", equals: true },
+            { flag: "vented", equals: true },
+            { flag: "aligned", equals: true },
+            { flag: "won", equals: false },
+          ],
+        },
+      },
+      {
+        type: "showText",
+        text: "The air still shimmers where the anti-aether field fell. The vault antechamber is quiet now — in a new way.",
+        tone: "system",
+        when: { flag: "won", equals: true },
+      },
+    ],
     hotspots: [
       {
         id: "back-to-workshop",
@@ -428,7 +707,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
             successText: "The Cogwork Heart slots into place with a satisfying click.",
             missingText: "You don't have the Cogwork Heart yet.",
             allPlacedText:
-              "The three components lock into their sockets and hum in unison — but nothing releases. Instead, a grinding shudder runs through the floor: somewhere above, a stairwell to a long-sealed Spire has ground open. The mechanism needs more than components. It needs to be run.",
+              "The three components lock into their sockets and hum in unison — but nothing releases. Instead, a grinding shudder runs through the chamber: a stairwell to the long-sealed Spire grinds open right here in the antechamber wall. The mechanism needs more than components. It needs to be run.",
           },
         ],
         visibleWhen: { not: { flag: "placedHeart", equals: true } },
@@ -447,7 +726,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
             successText: "The Aether Lens slots into place with a satisfying click.",
             missingText: "You don't have the Aether Lens yet.",
             allPlacedText:
-              "The three components lock into their sockets and hum in unison — but nothing releases. Instead, a grinding shudder runs through the floor: somewhere above, a stairwell to a long-sealed Spire has ground open. The mechanism needs more than components. It needs to be run.",
+              "The three components lock into their sockets and hum in unison — but nothing releases. Instead, a grinding shudder runs through the chamber: a stairwell to the long-sealed Spire grinds open right here in the antechamber wall. The mechanism needs more than components. It needs to be run.",
           },
         ],
         visibleWhen: { not: { flag: "placedLens", equals: true } },
@@ -466,18 +745,31 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
             successText: "The Pressure Valve Key slots into place with a satisfying click.",
             missingText: "You don't have the Pressure Valve Key yet.",
             allPlacedText:
-              "The three components lock into their sockets and hum in unison — but nothing releases. Instead, a grinding shudder runs through the floor: somewhere above, a stairwell to a long-sealed Spire has ground open. The mechanism needs more than components. It needs to be run.",
+              "The three components lock into their sockets and hum in unison — but nothing releases. Instead, a grinding shudder runs through the chamber: a stairwell to the long-sealed Spire grinds open right here in the antechamber wall. The mechanism needs more than components. It needs to be run.",
           },
         ],
         visibleWhen: { not: { flag: "placedValve", equals: true } },
       },
       {
+        // Moved here from the Workshop (feedback): the stairs physically
+        // connect Vault <-> Spire. Art: right wall doorway x132-148px, y44-76.
+        id: "spire-stair",
+        label: "Stairwell to the Spire",
+        x: 82,
+        y: 42,
+        w: 11,
+        h: 36,
+        actions: [{ type: "navigate", sceneId: "spire" }],
+        visibleWhen: { flag: "allPlaced", equals: true },
+      },
+      {
         id: "activate-convergence",
         label: "Activate the Convergence",
-        x: 38,
-        y: 60,
-        w: 24,
-        h: 8,
+        // Sized to the new focusing-altar graphic (art x72-88px, y62-67).
+        x: 43,
+        y: 59,
+        w: 14,
+        h: 10,
         actions: [
           {
             type: "activateConvergence",
@@ -504,16 +796,32 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
     id: "spire",
     name: "The Aether Spire",
     art: { component: "SpireArt" },
+    onEnter: [
+      {
+        type: "showText",
+        text: "Night air, at last. The Spire's parapet opens onto a field of stars; a great dead dial crowns the mast, and a brass lever waits cocked beside it.",
+        tone: "system",
+        when: { flag: "armed", equals: false },
+      },
+      {
+        type: "showText",
+        text: "Night air over the Spire. The great dial burns with the sun sigil ☉ and the mechanism churns below; the thrown lever rests at the mast.",
+        tone: "system",
+        when: { flag: "armed", equals: true },
+      },
+    ],
     hotspots: [
       {
-        id: "back-to-workshop",
-        label: "Back to Workshop",
+        // The stairwell physically connects Vault <-> Spire (feedback moved
+        // it out of the Workshop), so the way back down lands in the Vault.
+        id: "back-to-vault",
+        label: "Back to Vault",
         x: 2,
         y: 2,
         w: 10,
         h: 10,
         chip: true,
-actions: [{ type: "navigate", sceneId: "workshop" }],
+        actions: [{ type: "navigate", sceneId: "vault" }],
       },
       // Three mutually exclusive lever states. The !allPlaced variant is
       // unreachable in normal play (the Spire stair only opens at allPlaced)
@@ -579,11 +887,21 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
     id: "prison",
     name: "Prison Cell",
     art: { component: "PrisonArt" },
+    // The wake-up reads right only before anyone has escaped; afterwards the
+    // cell can also be entered on purpose (via the corridor door), so
+    // re-entries get a neutral description instead.
     onEnter: [
       {
         type: "showText",
         text: "You wake in a small holding cell, rune-etched bars dulled with rust. The Warden is nowhere in sight — it never follows this far. Everything you carried is still with you.",
         tone: "system",
+        when: { flag: "escapedPrison", equals: false },
+      },
+      {
+        type: "showText",
+        text: "The holding cell again — straw, a plank cot, hanging chains, and the loose floor grate, familiar now.",
+        tone: "system",
+        when: { flag: "escapedPrison", equals: true },
       },
     ],
     hotspots: [
@@ -595,6 +913,9 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         w: 8,
         h: 8,
         actions: [
+          // the pulse makes the art rattle for ~1s on every heave (feedback:
+          // it used to rattle constantly on the flicker)
+          { type: "pulse", id: "prison-grate" },
           {
             type: "repeatClick",
             counterId: "prison-grate",
@@ -606,6 +927,141 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
             ],
             onComplete: [{ type: "escapePrison" }],
           },
+        ],
+      },
+      {
+        id: "cot",
+        label: "Plank Cot",
+        x: 68,
+        y: 74,
+        w: 20,
+        h: 16,
+        actions: [
+          {
+            type: "showText",
+            text: "A plank cot with a thin blanket and a sad pillow. A nap would sound wonderful under almost any other circumstances.",
+            tone: "flavor",
+          },
+        ],
+      },
+      {
+        id: "desk-key",
+        label: "Key on a Desk",
+        // the desk sits across the corridor, beyond the bars (art x94-114px)
+        x: 57,
+        y: 58,
+        w: 14,
+        h: 18,
+        actions: [
+          {
+            type: "showText",
+            text: "On a desk across the corridor sits a heavy iron key. You stretch an arm through the bars until your shoulder aches — it stays a hand's width out of reach.",
+            tone: "flavor",
+          },
+        ],
+      },
+      // The loose brick hides THE valve code (2-0-1-3). Three heaves per
+      // device to work it free; the reveal is party-wide (brickOpened).
+      {
+        id: "loose-brick",
+        label: "Loose Brick",
+        x: 1,
+        y: 60,
+        w: 8,
+        h: 14,
+        actions: [
+          {
+            type: "repeatClick",
+            counterId: "prison-brick",
+            timesRequired: 3,
+            textsByStep: [
+              "One brick low in the wall sits proud of its course, mortar crumbling at the edges. You work your fingertips in and pull. It grinds a little looser.",
+              "The brick rocks in its socket now, grating stone on stone.",
+              "The brick comes free in your hands. In the dark space behind it: a folded note.",
+            ],
+            onComplete: [
+              { type: "setPartyFlag", flag: "brickOpened" },
+              {
+                type: "showText",
+                text: 'You unfold the note. Four digits, written with great care: "2 – 0 – 1 – 3". Below them, one line: "The pipes remember, even if the plaque was taken."',
+                tone: "system",
+              },
+            ],
+          },
+        ],
+        visibleWhen: { flag: "brickOpened", equals: false },
+      },
+      {
+        id: "loose-brick-opened",
+        label: "Loose Brick",
+        x: 1,
+        y: 60,
+        w: 8,
+        h: 14,
+        actions: [
+          {
+            type: "showText",
+            text: 'The brick sits beside its dark socket, the note flattened on the floor: "2 – 0 – 1 – 3".',
+            tone: "flavor",
+          },
+        ],
+        visibleWhen: { flag: "brickOpened", equals: true },
+      },
+    ],
+  },
+  {
+    id: "prison-corridor",
+    name: "Prison Corridor",
+    art: { component: "PrisonCorridorArt" },
+    onEnter: [
+      {
+        type: "showText",
+        text: "You come up through the duct on the corridor side of the cell bars. The guard's desk stands here, the cell key resting on it — and the barred door it opens.",
+        tone: "system",
+      },
+    ],
+    hotspots: [
+      {
+        id: "back-to-workshop",
+        label: "Climb back up to the Workshop",
+        x: 2,
+        y: 2,
+        w: 10,
+        h: 10,
+        chip: true,
+        actions: [{ type: "navigate", sceneId: "workshop" }],
+      },
+      {
+        id: "guard-desk",
+        label: "Guard's Desk",
+        x: 57,
+        y: 68,
+        w: 16,
+        h: 22,
+        actions: [
+          {
+            type: "showText",
+            text: "A heavy iron key rests on the desk, chained to its leg — the same key that sat maddeningly out of reach from the other side of the bars. It only travels as far as the cell door.",
+            tone: "flavor",
+          },
+        ],
+      },
+      {
+        // No unlock flag on purpose (user decision): the door re-locks behind
+        // whoever slips in, every time. The key stays chained to the desk.
+        id: "cell-door",
+        label: "Unlock the Cell Door",
+        x: 33,
+        y: 8,
+        w: 20,
+        h: 74,
+        actions: [
+          {
+            type: "showText",
+            text: "You lift the desk key on its chain, turn the lock, and slip into the cell. The door swings shut behind you and the lock clicks home — the key stays chained to the desk.",
+            tone: "system",
+          },
+          { type: "navigate", sceneId: "prison" },
         ],
       },
     ],

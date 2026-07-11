@@ -114,6 +114,18 @@ await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*gallery/.test(t), "
 check("Gallery's 'Back to Workshop' exit is a visible chip",
   (await player.locator('button.hotspot-chip[aria-label="Back to Workshop"]').count()) === 1);
 
+// ---- Hidden clue: the riddle caption stays hidden until the note is found ---
+check("Gallery riddle caption hidden before the hound-case note is found",
+  (await player.locator(".pixel-caption").count()) === 0);
+await player.click(`button.hotspot[aria-label="Look behind the Spider's case"]`);
+await player.waitForTimeout(250); // dust and cobwebs -- no reveal
+check("Wrong case reveals nothing", (await player.locator(".pixel-caption").count()) === 0);
+await player.click(`button.hotspot[aria-label="Look behind the Hound's case"]`);
+await player.waitForSelector(".pixel-caption", { timeout: 10000 });
+check("Hound-case note reveals the riddle caption", true);
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("galleryClueFound"),
+  "DM sees galleryClueFound set party-wide");
+
 // ---- Player opens the puzzle, answers WRONG -> noise rises ------------------
 await player.click('button.hotspot[aria-label="Examine the Automatons"]');
 await player.waitForSelector(".puzzle-panel", { timeout: 10000 });
@@ -131,8 +143,14 @@ check("Big BANG burst on the wrong-answer player's own screen", await wrongAnswe
 
 // ---- Player answers CORRECT -> inventory + flag -----------------------------
 await player.getByRole("button", { name: "Silent Butler" }).click();
-await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => t.includes("heart"), "DM sees 'heart' added to party inventory");
+await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => /heart/i.test(t), "DM sees 'heart' added to party inventory");
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("heartFound"), "DM sees 'heartFound' flag set");
+// Feedback: the elimination modal dismisses itself on the correct answer.
+const galleryModalGone = await player
+  .waitForSelector(".puzzle-panel", { state: "detached", timeout: 10000 })
+  .then(() => true)
+  .catch(() => false);
+check("Gallery puzzle auto-closed on the correct answer", galleryModalGone);
 
 // ---- The actual claim: the DM tab never navigated or reloaded ---------------
 check("DM tab took zero navigations/reloads while player acted", dmNavigations === 0, `${dmNavigations} navigation(s)`);
@@ -148,14 +166,20 @@ check("Scene is per-player: DM still in 'entrance' while player is in 'gallery'"
 // ============================================================================
 
 // ---- Valve puzzle: three wrong tests push noise 30 -> 60 -> 90 -> 100 -------
-await player.getByRole("button", { name: "Close" }).click(); // solved gallery modal from the leg above
 await player.click('button.hotspot[aria-label="Back to Workshop"]');
 await player.click('button.hotspot[aria-label="Pressure Valves"]');
 await player.waitForSelector(".puzzle-panel", { timeout: 10000 });
+// Dials sit at 0-0-0-0 vs the answer 2-0-1-3: three wrong dials -> 3 BANGs
+// (feedback: one BANG per wrong dial, Mastermind-style; noise stays flat +30).
+const threeBangs = player
+  .waitForSelector('.noise-bang-big[data-bangs="3"]', { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
 for (let i = 0; i < 3; i++) {
   await player.getByRole("button", { name: "Test the Pressure" }).click();
   await player.waitForTimeout(400); // let the RPC land; dials reset to 0 on fail
 }
+check("Wrong valve test bangs once per wrong dial (3 BANGs for 0-0-0-0)", await threeBangs);
 await waitForDm(dm, noiseTile, (t) => /Noise\s*100/.test(t), "DM sees noise hit 100 after three failed pressure tests");
 
 // ---- Warden alert: DM decides; nobody moved automatically -------------------
@@ -169,6 +193,18 @@ await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*prison/.test(t), "D
 await player.waitForSelector('button.hotspot[aria-label="Loose Floor Grate"]', { timeout: 10000 });
 check("Player's own view switched to the prison scene", true);
 
+// ---- The loose brick hides the valve code (feedback: it moved off the pipes)
+check("Code caption hidden before the brick is worked free",
+  (await player.locator(".pixel-caption").count()) === 0);
+for (let i = 0; i < 3; i++) {
+  await player.click('button.hotspot[aria-label="Loose Brick"]');
+  await player.waitForTimeout(250);
+}
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("brickOpened"),
+  "DM sees brickOpened set party-wide");
+const cellCaptions = await player.locator(".pixel-caption").count();
+check("Brick note caption (2-0-1-3) revealed in the cell", cellCaptions === 1, `${cellCaptions} captions`);
+
 // ---- Grate escape: three heaves, then noise resets for the whole party ------
 for (let i = 0; i < 3; i++) {
   await player.click('button.hotspot[aria-label="Loose Floor Grate"]');
@@ -177,6 +213,25 @@ for (let i = 0; i < 3; i++) {
 await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*workshop/.test(t), "Grate escape returns Player Two to workshop");
 await waitForDm(dm, noiseTile, (t) => /Noise\s*0(?!\d)/.test(t), "Escape resets party noise to 0");
 check("Warden alert panel is gone after the escape", (await dm.locator(".warden-alert").count()) === 0);
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("escapedPrison"),
+  "DM sees escapedPrison flag set by the escape");
+
+// ---- The corridor loop: hatch -> corridor -> cell door -> cell -> grate out --
+await player.waitForSelector('button.hotspot[aria-label="Floor Hatch"]', { timeout: 10000 });
+check("Workshop floor hatch appeared after the first escape", true);
+await player.click('button.hotspot[aria-label="Floor Hatch"]');
+await player.waitForSelector('button.hotspot[aria-label="Unlock the Cell Door"]', { timeout: 10000 });
+await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*prison-corridor/.test(t),
+  "Roster shows Player Two on the corridor side of the bars");
+await player.click('button.hotspot[aria-label="Unlock the Cell Door"]');
+await player.waitForSelector('button.hotspot[aria-label="Loose Floor Grate"]', { timeout: 10000 });
+check("Cell door lets the player back into the cell (and re-locks)", true);
+for (let i = 0; i < 3; i++) {
+  await player.click('button.hotspot[aria-label="Loose Floor Grate"]');
+  await player.waitForTimeout(250);
+}
+await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*workshop/.test(t),
+  "Second grate escape returns Player Two to workshop");
 
 // ---- Solve the valves: dials to [2,0,1,3] ------------------------------------
 await player.click('button.hotspot[aria-label="Pressure Valves"]');
@@ -189,7 +244,12 @@ for (let i = 0; i < dialClicks.length; i++) {
 }
 await player.getByRole("button", { name: "Test the Pressure" }).click();
 await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => t.includes("valve"), "Correct valve code grants the Pressure Valve Key");
-await player.getByRole("button", { name: "Close" }).click();
+// Feedback: dial puzzles now dismiss themselves on solve, like the books.
+const valveModalGone = await player
+  .waitForSelector(".puzzle-panel", { state: "detached", timeout: 10000 })
+  .then(() => true)
+  .catch(() => false);
+check("Valve puzzle auto-closed on solve", valveModalGone);
 
 // ---- Phase 6: split log — one big latest message + newest-first history -----
 const latestCount = await player.locator(".log-latest p").count();
@@ -202,6 +262,19 @@ check("History rail is newest-first (top bubble matches the latest message)",
 
 // ---- Archive: books in violet -> ash -> ember order --------------------------
 await player.click('button.hotspot[aria-label="Door to Archive"]');
+
+// ---- Hidden clue: the tome-order caption hides on the top shelf -------------
+check("Archive order caption hidden before the shelf note is found",
+  (await player.locator(".pixel-caption").count()) === 0);
+await player.click(`button.hotspot[aria-label="Search the middle shelf"]`);
+await player.waitForTimeout(250); // dust and cobwebs -- no reveal
+check("Wrong shelf reveals nothing", (await player.locator(".pixel-caption").count()) === 0);
+await player.click(`button.hotspot[aria-label="Search the top shelf"]`);
+await player.waitForSelector(".pixel-caption", { timeout: 10000 });
+check("Top-shelf note reveals the tome-order caption", true);
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("archiveClueFound"),
+  "DM sees archiveClueFound set party-wide");
+
 await player.click('button.hotspot[aria-label="The Colored Tomes"]');
 await player.waitForSelector(".puzzle-panel", { timeout: 10000 });
 for (const tome of ["Violet Tome", "Ash Tome", "Ember Tome"]) {
@@ -268,6 +341,11 @@ await watcher.click('button.hotspot[aria-label="Great Door (enter workshop)"]');
 await watcher.click('button.hotspot[aria-label="Vault Door"]');
 await watcher.waitForSelector('button.hotspot[aria-label="Activate the Convergence"]', { timeout: 10000 });
 check("Watcher sees the convergence hotspot (allPlaced, not won)", true);
+// Feedback: the vault's entry text tracks the convergence state -- at this
+// point (allPlaced, nothing armed) it mentions the opened stairwell.
+const vaultEntry = (await watcher.locator(".log-latest").textContent()) ?? "";
+check("Vault entry text reflects allPlaced (mentions the opened stairwell)",
+  vaultEntry.includes("stairwell to the Spire stands open"));
 check("Watcher sees all three convergence runes dim",
   (await watcher.locator('[data-converge][data-lit="false"]').count()) === 3);
 
@@ -294,11 +372,14 @@ watcher.on("framenavigated", (f) => {
 });
 
 // ---- Room 1 (Spire): Player Two arms the great lever — LOUD ----------------
-await player.click('button.hotspot[aria-label="Back to Workshop"]');
+// Feedback: the stairwell moved from the Workshop to the Vault -- and Player
+// Two is already standing in it after placing the components.
 await player.waitForSelector('button.hotspot[aria-label="Stairwell to the Spire"]', { timeout: 10000 });
-check("Spire stairwell opened in the Workshop once allPlaced", true);
+check("Spire stairwell opened in the Vault once allPlaced", true);
 await player.click('button.hotspot[aria-label="Stairwell to the Spire"]');
 await player.waitForSelector('button.hotspot[aria-label="Great Lever"]', { timeout: 10000 });
+check("Spire exit chip leads back down to the Vault",
+  (await player.locator('button.hotspot-chip[aria-label="Back to Vault"]').count()) === 1);
 // Both BANG watchers armed before the heave: big on the actor, small on the
 // hands-off watcher parked in the Vault (pure realtime, zero interactions).
 const leverBigBang = player
@@ -336,7 +417,12 @@ await aligner.locator(".puzzle-dial").click();
 await aligner.locator(".puzzle-dial").click();
 await aligner.getByRole("button", { name: "Lock Alignment" }).click();
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("aligned"), "DM sees 'aligned' flag set");
-await aligner.getByRole("button", { name: "Close" }).click();
+// Feedback: locking the alignment closes the modal by itself.
+const lensModalGone = await aligner
+  .waitForSelector(".puzzle-panel", { state: "detached", timeout: 10000 })
+  .then(() => true)
+  .catch(() => false);
+check("Lock Alignment auto-closed the lens modal", lensModalGone);
 
 // ---- The watcher's Vault lit up rune by rune, hands off the whole time ------
 for (const flag of ["armed", "vented", "aligned"]) {
@@ -388,6 +474,19 @@ await waitForDm(dm, noiseTile, (t) => /Noise\s*35(?!\d)/.test(t), "DM −10 step
 await dm.getByRole("button", { name: "Clear noise (35)" }).click();
 await waitForDm(dm, noiseTile, (t) => /Noise\s*0(?!\d)/.test(t), "Standalone clear-noise resets party noise to 0");
 
+// ---- Warden toggle: sprite + hotspot vanish live on a player device ---------
+await aligner.click('button.hotspot-chip[aria-label="Back to Workshop"]');
+await aligner.waitForSelector('button.hotspot[aria-label="The Dormant Warden"]', { timeout: 10000 });
+await dm.getByRole("button", { name: "Hide the Warden" }).click();
+const wardenGone = await aligner
+  .waitForSelector('button.hotspot[aria-label="The Dormant Warden"]', { state: "detached", timeout: 15000 })
+  .then(() => true)
+  .catch(() => false);
+check("DM's warden toggle removes the warden hotspot live via realtime", wardenGone);
+await dm.getByRole("button", { name: "Hidden — bring it back" }).click();
+await aligner.waitForSelector('button.hotspot[aria-label="The Dormant Warden"]', { timeout: 15000 });
+check("Toggling again brings the warden back", true);
+
 // ---- Grant buttons are inert when the party already holds everything --------
 check("Grant buttons are disabled for items already held",
   await dm.getByRole("button", { name: "Cogwork Heart" }).isDisabled());
@@ -427,8 +526,10 @@ await waitForDm(dm2, ".objective:has(b:text-is('Flags'))",
 // Wait for the grants to reach the stuck player's client before touching the
 // Vault Door -- the sealed and open variants share a label, so clicking early
 // would hit the sealed one and just log flavor text.
+// The player HUD renders inventory as pixel sprites now; the item names
+// survive as visually-hidden text (Title Case), so match case-insensitively.
 await waitForDm(stuck, ".objective",
-  (t) => t.includes("heart") && t.includes("lens") && t.includes("valve"),
+  (t) => /heart/i.test(t) && /lens/i.test(t) && /valve/i.test(t),
   "Stuck player's inventory filled up via realtime");
 await stuck.click('button.hotspot[aria-label="Vault Door"]');
 await stuck.waitForSelector('button.hotspot[aria-label="Place Cogwork Heart"]', { timeout: 10000 });
