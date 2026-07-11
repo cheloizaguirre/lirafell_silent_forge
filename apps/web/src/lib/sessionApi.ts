@@ -47,6 +47,13 @@ export async function joinSession(code: string, displayName: string) {
   return data;
 }
 
+// DM-only. Completed sessions stop matching findExistingPlayerRow's
+// active filter, so this is what frees the DM to start a clean run.
+export async function endSession(sessionId: string) {
+  const { error } = await supabase.rpc("end_session", { p_session_id: sessionId });
+  if (error) throw error;
+}
+
 export async function setCurrentScene(sessionId: string, sceneId: string) {
   const { error } = await supabase.rpc("set_current_scene", {
     p_session_id: sessionId,
