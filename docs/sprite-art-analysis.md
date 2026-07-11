@@ -1,5 +1,14 @@
 # SVG → 8-bit sprite art: migration analysis
 
+> **SUPERSEDED (2026-07-11): this migration is DONE and merged to `main`.**
+> The approach that actually shipped differs from this analysis: instead of a
+> binary asset pipeline (Aseprite PNGs), the scenes are drawn **procedurally
+> in code** into a 160×100 framebuffer (`apps/web/src/scenes/pixel/`), which
+> collapsed the "~1–2 weeks of art production" estimate below to ~a day per
+> several scenes. This doc is kept for its state-inventory and the reasoning,
+> not as a plan. See `docs/pixel-prototype-notes.md` for the real pipeline
+> and `NEXT_STEPS.md` for current status.
+
 Written 2026-07-10 (Phase 7), as requested — an assessment of the work, not
 an implementation plan. Candidate for v2.
 

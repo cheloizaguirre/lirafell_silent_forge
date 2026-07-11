@@ -1,6 +1,33 @@
 # Silent Forge — Progress & Next Manual Steps
 
-Status as of 2026-07-10. **Phases 1–7 are DONE and verified end-to-end through a real browser (`pnpm verify:realtime`, 67/67 — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads).** The full quest is playable start to finish: all of Stage 1 (Entrance, Workshop valves, Archive books, Gallery elimination, Vault placement, Prison escape) plus Stage 2 convergence (Spire arm lever at +35 noise, Workshop overflow vent, Archive lens realignment as a single-sigil-dial puzzle, and a server-validated `activate_convergence` that sets `won`). The Phase 3 acceptance bar was met literally: three devices flipped `armed`/`vented`/`aligned` from three different rooms while a fourth sat in the Vault watching the convergence runes light up over realtime with zero interactions, then threw the final switch itself. The DM console now has its full v1 override trio (per-player force-scene, grant-item, clear-noise), role-gated server-side and proven able to unstick a party that solved nothing. The Warden mechanic is DM-mediated: noise hitting 100 raises an alert on the DM console naming the offender — the DM narrates and decides (send someone to the cell / clear the noise); nothing happens automatically. That decision (2026-07-10) supersedes the original plan's auto-capture reading and pulled `dm_force_scene`/`dm_clear_noise` forward from Phase 4. Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
+Status as of 2026-07-11. **Phases 1–7 are DONE, and the 8-bit pixel art rework (the top v2 candidate) is DONE and merged to `main`.** Verified end-to-end through a real browser (`pnpm verify:realtime`, **91/91** — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads).
+
+## Pixel art rework — DONE and merged (2026-07-11)
+
+`main` now renders **procedural 8-bit pixel scenes** for all seven rooms (no binary assets — each scene draws into a 160×100 framebuffer and upscales with `image-rendering: pixelated`). The SVG originals stay in `apps/web/src/scenes/*Art.tsx` as **non-authoritative swap-back references** (per user decision); `engine/sceneRegistry.ts` points every scene at its `*Pixel` component. The full pipeline + the ten screenshot-learned design rules live in `docs/pixel-prototype-notes.md`; the current playthrough route is `docs/pixel-approval-walkthrough.md`.
+
+The rework shipped in two waves: all seven scenes first, then a **feedback pass** (`docs/pixel_feedback.md`) merged as one branch. Feedback-pass gameplay changes worth remembering:
+
+- **The valve code (2-0-1-3) moved off the Workshop plaque** — its only copy is a note behind a loose brick in the prison cell. **Getting captured is now the intended route to it** (no backup hint; the DM can always force a player to the cell, and after one escape a Workshop floor hatch reopens the corridor side).
+- **A new `prison-corridor` scene** (SceneId + `PrisonCorridorArtPixel`, same component with a `side` prop): reached via the Workshop hatch; the desk key opens the cell door, which **re-locks every time** (no persistent unlock flag — deliberate).
+- **Hidden clues reveal party-wide**: gallery riddle behind the hound's case, tome order on the Archive's top shelf; captions stay hidden until found. Uses a new **allowlisted `set_party_flag` RPC** (`galleryClueFound`/`archiveClueFound`/`brickOpened`) — the first player-writable flag path, deliberately not a generic setter.
+- **Spire stairwell relocated from Workshop → Vault** (the stairs connect Vault↔Spire; Spire's exit chip now leads to the Vault).
+- **DM warden hide/show toggle** (`dm_set_warden_hidden` + `flags.wardenHidden`) — groundwork for a future noise jump-scare.
+- **Per-room `onEnter` descriptions** (print every entry); the Vault's tracks the convergence diamonds. `showText` actions gained a `when` condition evaluated against **party** flags (distinct from the local-only `onlyIfFlag*`).
+- Player inventory renders as **pixel item sprites** (`ItemSpritePixel`), names preserved for a11y/tests via a visually-hidden span.
+- Puzzle modals (dial, elimination) auto-close on solve like the sequence one; wrong valve tests BANG once per wrong dial (noise stays flat +30); BANG lifetime ~1.7s.
+
+**Two new migrations** shipped with this (both applied to local via `supabase db reset`, which wipes any running session — start fresh):
+- `20260711090000_end_session.sql` — DM `end_session` (landing "resume or start fresh").
+- `20260711120000_pixel_feedback.sql` — `set_party_flag`, `dm_set_warden_hidden`, `add_noise` gains `p_bangs` (**DROP+CREATE**, new signature), `escape_prison` sets `escapedPrison`, `submit_puzzle_attempt` (tome fails now +30, valve fails report wrong-dial count), cheat-sheet notes updated.
+
+**Still deferred (tracked, not built):** the locked-cabinet "harder puzzle" reward (an optional detail-hunt reward, no new scenes — the prison desk key opens the cell door now, so the cabinet still has no key); the Warden noise **jump-scare** that builds on the hide/show toggle. Neither is scheduled.
+
+---
+
+**Everything below predates the pixel merge; the phase history is still accurate, but "renders SVG" is now "renders pixel", and the verify count is 91 not 67.**
+
+ The full quest is playable start to finish: all of Stage 1 (Entrance, Workshop valves, Archive books, Gallery elimination, Vault placement, Prison escape) plus Stage 2 convergence (Spire arm lever at +35 noise, Workshop overflow vent, Archive lens realignment as a single-sigil-dial puzzle, and a server-validated `activate_convergence` that sets `won`). The Phase 3 acceptance bar was met literally: three devices flipped `armed`/`vented`/`aligned` from three different rooms while a fourth sat in the Vault watching the convergence runes light up over realtime with zero interactions, then threw the final switch itself. The DM console now has its full v1 override trio (per-player force-scene, grant-item, clear-noise), role-gated server-side and proven able to unstick a party that solved nothing. The Warden mechanic is DM-mediated: noise hitting 100 raises an alert on the DM console naming the offender — the DM narrates and decides (send someone to the cell / clear the noise); nothing happens automatically. That decision (2026-07-10) supersedes the original plan's auto-capture reading and pulled `dm_force_scene`/`dm_clear_noise` forward from Phase 4. Picking this back up? Read this file, then hand it to Claude to resume — it has full context of the plan already (`plans/this-file-contains-the-purrfect-harbor.md`), but this doc is the fast way to re-sync.
 
 ## Current state: playable locally right now
 
@@ -19,7 +46,9 @@ Local Supabase Studio (DB browser/table editor): `http://127.0.0.1:54323`
 
 ## Where v1 stands / what's next
 
-Seven build phases are done (Phase 6: polish — neutral dark theme, projection-scale type, split log, DM-facing noise + BANG bursts; Phase 7: v1 improvements — DM cheat-sheet, visible corner-exit chips + a way back to the Entrance Hall, auto-closing book puzzle). **Per user decision 2026-07-10, the hosted deploy moved to the END of v2** — v1 keeps improving locally against Docker. v2 candidates so far: 8-bit sprite art (analysis done, see `docs/sprite-art-analysis.md` — art production dominates, ~1–2 weeks vs ~1–2 days of engineering; prototype the Vault first), then the deploy last.
+Seven build phases are done (Phase 6: polish — neutral dark theme, projection-scale type, split log, DM-facing noise + BANG bursts; Phase 7: v1 improvements — DM cheat-sheet, visible corner-exit chips + a way back to the Entrance Hall, auto-closing book puzzle). **Per user decision 2026-07-10, the hosted deploy moved to the END of v2** — v1 keeps improving locally against Docker.
+
+**The top v2 candidate — 8-bit sprite art — is now DONE and merged (see the "Pixel art rework" section above).** The original estimate (`docs/sprite-art-analysis.md`: "art production dominates, ~1–2 weeks") collapsed: procedural sprites drawn in code took ~a day per several scenes, no binary asset pipeline needed. **Remaining v2 work: the hosted deploy (last), plus the two deferred pixel-era items (locked-cabinet reward puzzle, warden jump-scare) if wanted.**
 
 ## What's NOT built yet
 
@@ -43,9 +72,12 @@ Seven build phases are done (Phase 6: polish — neutral dark theme, projection-
 **Repo structure:**
 ```
 apps/web/            Vite + React 19 + TS SPA — fully wired: routes, engine, Supabase client, realtime
-packages/content/     Zod content schemas + all 7 scenes / 4 puzzles — validates clean
-supabase/             config.toml + 8 migrations, tested end-to-end against local Docker Supabase
-docs/                 sprite-art-analysis.md (v2 candidate assessment)
+  src/scenes/pixel/   procedural 8-bit scene components (ACTIVE) + pixelCanvas.ts / dungeonKit.ts / ItemSpritePixel.tsx
+  src/scenes/*Art.tsx  the SVG originals — kept as non-authoritative swap-back references only
+packages/content/     Zod content schemas + all 8 scenes / 4 puzzles — validates clean
+supabase/             config.toml + 10 migrations, tested end-to-end against local Docker Supabase
+docs/                 pixel-prototype-notes.md (pipeline + design rules), pixel-approval-walkthrough.md (route),
+                      pixel_feedback.md (the feedback pass), sprite-art-analysis.md (superseded v2 assessment)
 .claude/skills/verify/  project verify skill — how to spin up + browser-test this repo (READ THIS before re-verifying anything)
 ```
 
@@ -59,7 +91,7 @@ docs/                 sprite-art-analysis.md (v2 candidate assessment)
 - `src/routes/` — `LandingPage`, `JoinPage`, `PlayPage`, `DmPage` (live state dump + the Warden alert panel + the Phase 4 overrides panel: per-player force-scene picker, grant-item buttons that disable once held, standalone clear-noise — the plan's v1 trio, nothing more).
 - `src/index.css` — originally the PoC's gothic-violet palette; since Phase 6 a neutral dark theme with purple as sparing highlight, projection-scale type, the split-log layout (latest panel + history rail), the DM-only noise gauge, and the BANG burst animations.
 
-**`supabase/migrations/`** — eight migrations, all tested against real local Postgres (not just reviewed):
+**`supabase/migrations/`** — ten migrations, all tested against real local Postgres (not just reviewed):
 - `20260709124635_init_schema.sql` — `sessions`, `players` (scene is **per-player**), `session_state` (flags/inventory/noise **party-shared**), `puzzle_attempts`. RLS + explicit table-level `GRANT SELECT` (see bug #1 below).
 - `20260709124636_rpc_actions.sql` — `create_session`, `join_session`, `set_current_scene`, `add_noise` (internal), `submit_puzzle_attempt` (Gallery's real answer `'butler'` lives here only). `#variable_conflict use_column` pragma on the two `RETURNS TABLE` functions (see bug #2 below).
 - `20260709181557_enable_realtime.sql` — adds `players`/`session_state` to the `supabase_realtime` publication with `REPLICA IDENTITY FULL` (see bug #3 below — this one was nasty).
@@ -68,6 +100,8 @@ docs/                 sprite-art-analysis.md (v2 candidate assessment)
 - `20260710160000_phase4_dm_console.sql` — `dm_grant_item`, completing the role-gated DM trio. Granting sets the item's `*Found` flag too, mirroring the puzzle solve — without it the override wouldn't unstick anything (the Vault door gates on those flags). `placed*` stays untouched: placement is gameplay, not a grant.
 - `20260710190000_phase6_polish.sql` — noise attribution + DM steppers. `add_noise` now stamps `flags.noiseEvent = {seq, by, amount}` on every noise-raising call (seq is monotonic so clients can dedupe reconcile re-fetches; `by` is the actor's `players.id`, correct through the SECURITY DEFINER chain) — this drives the BANG bursts. `dm_adjust_noise(session, delta)` is the ±10 stepper RPC: role-gated, delta-based (two quick taps can't race a stale read), clamped 0–100; positive deltas route through `add_noise` (so DM-added noise BANGs on player screens and can trip the Warden), stepping down below 100 strips `wardenAlert`.
 - `20260710210000_phase7_dm_cheatsheet.sql` — `dm_get_solutions`, role-gated like the override trio. The cheat-sheet exists so the answers-only-in-RPCs invariant survives having a DM-facing solutions panel: answers still never ship in the client bundle; the DM console fetches them at runtime. If an answer changes in `submit_puzzle_attempt`, change it here too — these two places are the only ones.
+- `20260711090000_end_session.sql` — `end_session` (DM-only): marks the session complete so it stops matching the active-session resume filter, freeing the DM to start a clean run from the landing page.
+- `20260711120000_pixel_feedback.sql` — the pixel feedback pass. `set_party_flag(session, flag)` — first player-writable flag path, **allowlisted** to `galleryClueFound`/`archiveClueFound`/`brickOpened` (clue reveals), not a generic setter. `dm_set_warden_hidden` (party `flags.wardenHidden`). `add_noise` gains `p_bangs int default 1` — a new signature, so **DROP + CREATE** (not `create or replace`) and re-assert the revoke; internal 2-arg callers resolve via the default. `escape_prison` also sets `flags.escapedPrison`. `submit_puzzle_attempt`: `archive-books` fails now +30 noise; `workshop-valves` fails compute the wrong-dial count and pass it as `p_bangs` (one BANG per wrong dial). `dm_get_solutions` notes updated (clue is behind the prison brick; tome fails loud). Answers still live only here + the cheat-sheet.
 
 ### Three real bugs found by actually testing (not just reading the SQL)
 
