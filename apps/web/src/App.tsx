@@ -7,9 +7,10 @@ import { DmPage } from "./routes/DmPage";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<JoinPage />} />
       <Route path="/join/:code?" element={<JoinPage />} />
       <Route path="/play/:code" element={<PlayPage />} />
+      <Route path="/dm" element={<LandingPage />} />
       <Route path="/dm/:code" element={<DmPage />} />
     </Routes>
   );
