@@ -1,5 +1,5 @@
 import { SceneShell } from "./SceneShell";
-import type { ArtProps } from "./artTypes";
+import type { ArtProps } from "../artTypes";
 
 // Ported from the PoC's renderArchive() at silent_forge(1).html:410-427.
 // Once the lens is found, the three pattern tomes settle lower in the shelf

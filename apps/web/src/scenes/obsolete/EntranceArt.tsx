@@ -1,5 +1,5 @@
 import { SceneShell } from "./SceneShell";
-import type { ArtProps } from "./artTypes";
+import type { ArtProps } from "../artTypes";
 
 // Ported from the PoC's renderEntrance() at ~/Downloads/silent_forge(1).html:271-286.
 export function EntranceArt(_props: ArtProps) {

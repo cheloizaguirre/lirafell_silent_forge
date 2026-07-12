@@ -10,7 +10,7 @@ import {
   blit,
 } from "./pixelCanvas";
 import type { Buf } from "./pixelCanvas";
-import { PAL, drawRoom, drawTorch, drawDigits, usePixelFrame } from "./dungeonKit";
+import { PAL, drawRoom, drawTorch, usePixelFrame } from "./dungeonKit";
 import { useSessionStore } from "../../state/useSessionStore";
 
 // 8-bit Prison (proto-vault-8bit branch). The layering IS the scene: the
@@ -171,11 +171,15 @@ function draw(ctx: CanvasRenderingContext2D, s: PrisonState, frame: number, gx: 
       frameRect(buf, 3, 66, 9, 6, PAL.floorLight);
       set(buf, 6, 69, PAL.paper);
       set(buf, 7, 69, PAL.paper);
-      // the note itself, flattened on the floor below -- pixel digits are
-      // the one text that works on canvas, and this one is THE clue
+      // the note itself, flattened on the floor below. The clue is now a
+      // breathing-drill ditty (too long to pixel-render and deliberately not
+      // the bare code), so the note shows only cramped, unreadable
+      // handwriting here; the ditty text lives in the showText + caption.
       fillRect(buf, 9, 83, 19, 8, PAL.paper);
       for (let x = 9; x < 28; x++) set(buf, x, 83, PAL.white);
-      drawDigits(buf, 11, 84, "2013", PAL.black);
+      for (const [ly, x1] of [[85, 25], [87, 22], [89, 24]] as const) {
+        for (let x = 11; x < x1; x++) set(buf, x, ly, PAL.steelDark);
+      }
     } else {
       frameRect(buf, 3, 66, 9, 6, PAL.floorLight);
       ditherRect(buf, 4, 67, 7, 4, PAL.mortar);
@@ -223,7 +227,7 @@ function PrisonArt({ flags, side }: ArtProps & { side: "cell" | "corridor" }) {
       <canvas ref={canvasRef} width={W} height={H} className="scene-pixel-canvas" />
       {side === "cell" && brickOpened && (
         <span className="pixel-caption" style={{ left: "22%", top: "60%" }}>
-          behind the brick: 2 – 0 – 1 – 3
+          behind the brick: a breathing-drill note
         </span>
       )}
       {side === "corridor" && (

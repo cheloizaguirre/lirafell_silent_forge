@@ -66,12 +66,14 @@ Door to Gallery, right side of the Workshop.
       case-light halo is gone.
 - [ ] The four alarmed automatons' ember eyes pulse **slowly** (1.8s), out of
       step with the torches.
-- [ ] **No riddle caption anywhere** — the plaque is gone.
+- [ ] **No cipher caption anywhere** — the plaque is gone.
 - [ ] Each case has a "Look behind the …'s case" strip along its plinth.
       Four of them: *"Nothing here but dust and cobwebs."*
-- [ ] **Behind the hound's case**: a paper note reveals the riddle — the
-      caption chip appears for the whole party (check the second window).
-- [ ] The *Examine the Automatons* prompt does NOT restate the riddle.
+- [ ] **Behind the hound's case**: a paper note reveals the Caesar cipher
+      (**FYXPIV**, key = the 4 automatons whose eyes blink → shift back 4 →
+      BUTLER) — the caption chip (*"a cipher — count the blinking eyes"*)
+      appears for the whole party (check the second window).
+- [ ] The *Examine the Automatons* prompt does NOT restate the answer.
 
 **Wrong answer** — pick any non-butler:
 
@@ -91,8 +93,11 @@ Back to Workshop, then Door to Archive (left side).
 
 - [ ] **No order caption anywhere** until found.
 - [ ] Two "Search the … shelf" hotspots on the upper shelves. Middle shelf:
-      dust. **Top shelf**: the note — *"Violet before Ash, Ash before
-      Ember."* — and the caption appears party-wide.
+      dust. **Top shelf**: the note — a burn-cycle haiku, *"Twilight-crowned,
+      it flares / then sinks to pale grey stillness / one coal, still
+      breathing."* (twilight flare = Violet, pale grey = Ash, one coal =
+      Ember; the Black Tome is never named) — and the caption (*"a haiku hides
+      on the shelf"*) appears party-wide.
 - [ ] The tome prompt does NOT restate the order.
 - [ ] Lens pedestal hover box covers ring + glass + pedestal.
 - [ ] Clicking the lens prints ONE merged recording message, every click.
@@ -129,8 +134,12 @@ DM: *Send \<player\> to the cell.*
 - [ ] The grate sits **still** until you heave it — each heave rattles it
       for ~a second, then it settles.
 - [ ] **Loose Brick** (low in the left wall), three heaves: the brick comes
-      free, the note reads **2 – 0 – 1 – 3** in pixel digits on the floor,
-      and a caption chip pins the code to the scene — party-wide.
+      free. The note on the floor shows only **cramped, unreadable
+      handwriting** (no pixel digits anymore); the real text is a
+      breathing-drill ditty in the message — raise both arms (2), empty mind
+      to nothing (0), one slow breath (1), pat back three times (3) → 2-0-1-3.
+      A caption chip (*"behind the brick: a breathing-drill note"*) pins it to
+      the scene — party-wide.
 
 Heave the *Loose Floor Grate* three times:
 

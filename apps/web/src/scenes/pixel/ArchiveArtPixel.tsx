@@ -16,8 +16,8 @@ import { PAL, drawRoom, drawTorch, usePixelFrame } from "./dungeonKit";
 
 // 8-bit Archive & Study (proto-vault-8bit branch). The tome shelf and its
 // inscription are the puzzle surface, so both must read from a couch: the
-// four tomes are fat color-coded spines, and the "Violet before Ash..."
-// clue is an HTML caption (same rule as the Vault's rune labels). The SVG's
+// four tomes are fat color-coded spines, and the burn-cycle haiku clue is
+// an HTML caption (same rule as the Vault's rune labels). The SVG's
 // "a faint beam flickers" *text* is replaced by an actual flickering beam:
 // armed-but-unaligned sputters on the flicker frame, aligned goes solid.
 
@@ -161,7 +161,7 @@ export function ArchiveArtPixel({ flags }: ArtProps) {
       <canvas ref={canvasRef} width={W} height={H} className="scene-pixel-canvas" />
       {clueFound && (
         <span className="pixel-caption" style={{ left: "21%", top: "82%" }}>
-          "Violet before Ash, Ash before Ember."
+          a haiku hides on the shelf
         </span>
       )}
     </div>

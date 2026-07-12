@@ -399,7 +399,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           { type: "setPartyFlag", flag: "galleryClueFound" },
           {
             type: "showText",
-            text: 'Wedged behind the piston hound\'s case, your fingers find a folded slip of paper. In a careful hand it reads: "Only the one who never sang served faithfully."',
+            text: 'Wedged behind the piston hound\'s case, your fingers find a folded slip of paper. In a careful hand it reads: "The guilty cannot hold still. Count how many automatons let their eyes flicker and blink — that count is your key. Shift each letter back by it to name the one you may trust: FYXPIV."',
             tone: "system",
           },
         ],
@@ -415,7 +415,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: 'The paper note rests where it was found: "Only the one who never sang served faithfully."',
+            text: 'The paper note rests where it was found: "Count the automatons whose eyes flicker and blink; shift each letter of FYXPIV back by that many to name the one you may trust."',
             tone: "flavor",
           },
         ],
@@ -493,8 +493,9 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         ],
         visibleWhen: { flag: "lensFound", equals: true },
       },
-      // Top shelf hides the order clue that used to be a plaque; the middle
-      // shelf is honest dust. Both sit above the colored-tomes box.
+      // Top shelf hides the order clue (a burn-cycle haiku: violet flare ->
+      // ash -> ember, no color names; the Black Tome is the unnamed decoy).
+      // The middle shelf is honest dust. Both sit above the colored-tomes box.
       {
         id: "shelf-top",
         label: "Search the top shelf",
@@ -506,7 +507,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           { type: "setPartyFlag", flag: "archiveClueFound" },
           {
             type: "showText",
-            text: 'Tucked behind the top shelf\'s spines, your fingers find a slip of paper in a careful hand: "Violet before Ash, Ash before Ember."',
+            text: 'Tucked behind the top shelf\'s spines, your fingers find a slip of paper. Three lines in a careful hand: "Twilight-crowned, it flares / then sinks to pale grey stillness / one coal, still breathing."',
             tone: "system",
           },
         ],
@@ -522,7 +523,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: 'The slip of paper rests where it was found: "Violet before Ash, Ash before Ember."',
+            text: 'The slip of paper rests where it was found: "Twilight-crowned, it flares / then sinks to pale grey stillness / one coal, still breathing."',
             tone: "flavor",
           },
         ],
@@ -960,8 +961,10 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           },
         ],
       },
-      // The loose brick hides THE valve code (2-0-1-3). Three heaves per
-      // device to work it free; the reveal is party-wide (brickOpened).
+      // The loose brick hides THE valve code, encoded as a breathing-drill
+      // ditty: both arms (2), mind to nothing (0), one breath (1), pat x3 (3)
+      // -> 2-0-1-3. Three heaves per device to work it free; the reveal is
+      // party-wide (brickOpened).
       {
         id: "loose-brick",
         label: "Loose Brick",
@@ -983,7 +986,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
               { type: "setPartyFlag", flag: "brickOpened" },
               {
                 type: "showText",
-                text: 'You unfold the note. Four digits, written with great care: "2 – 0 – 1 – 3". Below them, one line: "The pipes remember, even if the plaque was taken."',
+                text: 'You unfold the note. No digits — just a little breathing-drill, in a careful hand: "To bleed off the pressure, here is all that I do: I raise up both arms; I empty my mind to nothing; I draw one slow breath; then I pat my own back — one, two, three. Set the valves to match, in the order I relax."',
                 tone: "system",
               },
             ],
@@ -1001,7 +1004,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: 'The brick sits beside its dark socket, the note flattened on the floor: "2 – 0 – 1 – 3".',
+            text: 'The brick sits beside its dark socket, the note flattened on the floor: "...both arms; my mind to nothing; one slow breath; a pat — one, two, three. Set the valves in the order I relax."',
             tone: "flavor",
           },
         ],
