@@ -45,6 +45,11 @@ export const PAL = {
   purple: rgb("#8b5fbf"),
   purpleBright: rgb("#c9a3ff"),
   purpleDim: rgb("#5c4577"),
+  // warden jump-scare: menacing red glow (eyes + sound-wave halo). Reserved
+  // for the looming bust in WardenJumpScare -- the dormant statue stays violet.
+  wardenEye: rgb("#ff2a1a"),
+  wardenEyeBright: rgb("#ff8a6a"),
+  wardenGlow: rgb("#7a1410"),
   white: rgb("#f0f0f4"),
 };
 

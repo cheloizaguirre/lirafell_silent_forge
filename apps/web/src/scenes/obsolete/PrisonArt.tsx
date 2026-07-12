@@ -1,5 +1,5 @@
 import { SceneShell } from "./SceneShell";
-import type { ArtProps } from "./artTypes";
+import type { ArtProps } from "../artTypes";
 
 // Ported from the PoC's renderPrison() at silent_forge(1).html:630-636.
 export function PrisonArt(_props: ArtProps) {

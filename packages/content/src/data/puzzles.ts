@@ -14,7 +14,9 @@ export const puzzles: PuzzleContent[] = [
     sceneId: "workshop",
     title: "Pressure Valves",
     // The code (2-0-1-3) is no longer engraved here -- it hides behind the
-    // prison cell's loose brick. Capture is the intended route to it.
+    // prison cell's loose brick, encoded as a breathing-drill ditty (both
+    // arms 2, mind to nothing 0, one breath 1, pat x3 = 3). Capture is the
+    // intended route to it.
     prompt:
       "Four numbered valves crown the pipe assembly, each dial cycling 0 through 3. Whatever setting the pipes want, nothing here says it.",
     onFailNoise: 30,
@@ -35,8 +37,9 @@ export const puzzles: PuzzleContent[] = [
     id: "archive-books",
     sceneId: "archive",
     title: "The Colored Tomes",
-    // The order clue ("Violet before Ash, Ash before Ember") is no longer
-    // printed here -- it hides on the bookshelf's upper shelf.
+    // The order clue is no longer printed plainly -- it hides on the
+    // bookshelf's upper shelf as a burn-cycle haiku (violet flare -> ash ->
+    // ember, no color names named; the Black Tome is the unreferenced decoy).
     prompt:
       "Four tomes stand in the shelf: violet, ash, black, and ember. Their spines are worn from being pulled in some particular order.",
     onFailNoise: 30,
@@ -79,8 +82,9 @@ export const puzzles: PuzzleContent[] = [
     id: "gallery-elimination",
     sceneId: "gallery",
     title: "Gallery of Automatons",
-    // The riddle ("Only the one who never sang served faithfully.") is no
-    // longer posted here -- it hides on a note behind the piston hound's case.
+    // The answer is no longer posted plainly -- a note behind the piston
+    // hound's case gives a Caesar cipher (FYXPIV) whose key is the number of
+    // automatons with blinking eyes (4); shifting back 4 spells BUTLER.
     prompt:
       "Five automatons watch from their cases. Four of them will trigger a loud alarm if disturbed; nothing marks which one is safe.",
     onFailNoise: 30,

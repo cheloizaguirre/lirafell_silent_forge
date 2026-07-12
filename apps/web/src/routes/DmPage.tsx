@@ -9,6 +9,7 @@ import {
   dmGetSolutions,
   dmGrantItem,
   dmSetWardenHidden,
+  dmSetWardenRoom,
   fetchOwnPlayer,
   fetchSessionByCode,
 } from "../lib/sessionApi";
@@ -42,6 +43,7 @@ export function DmPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [movePlayerId, setMovePlayerId] = useState("");
   const [moveSceneId, setMoveSceneId] = useState<string>(scenes[0]?.id ?? "entrance");
+  const [scareSceneId, setScareSceneId] = useState<string>(scenes[0]?.id ?? "entrance");
   const [solutions, setSolutions] = useState<DmSolution[] | null>(null);
 
   useSessionState(sessionId);
@@ -256,6 +258,39 @@ export function DmPage() {
               {sessionState.flags.wardenHidden === true
                 ? "Hidden — bring it back"
                 : "Hide the Warden"}
+            </button>
+          </div>
+          <div className="dm-override-row">
+            <span className="dm-override-label">Summon</span>
+            {/* Cosmetic jump-scare: slams a looming waist-up Warden bust over
+                the chosen room for any player standing in it. Sets wardenRoom
+                and nothing else. Empty = dismissed. */}
+            <select
+              id="dm-scare-scene"
+              value={scareSceneId}
+              onChange={(e) => setScareSceneId(e.target.value)}
+            >
+              {scenes.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={actionBusy}
+              onClick={() => void runDmAction(() => dmSetWardenRoom(sessionId, scareSceneId))}
+            >
+              Summon
+            </button>
+            <button
+              type="button"
+              disabled={actionBusy || !sessionState.flags.wardenRoom}
+              onClick={() => void runDmAction(() => dmSetWardenRoom(sessionId, ""))}
+            >
+              {sessionState.flags.wardenRoom
+                ? `Looming in ${String(sessionState.flags.wardenRoom)} — Dismiss`
+                : "Dismiss"}
             </button>
           </div>
           <div className="dm-override-row">

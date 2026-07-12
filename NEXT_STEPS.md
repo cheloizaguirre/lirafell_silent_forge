@@ -4,13 +4,13 @@ Status as of 2026-07-11. **Phases 1–7 are DONE, and the 8-bit pixel art rework
 
 ## Pixel art rework — DONE and merged (2026-07-11)
 
-`main` now renders **procedural 8-bit pixel scenes** for all seven rooms (no binary assets — each scene draws into a 160×100 framebuffer and upscales with `image-rendering: pixelated`). The SVG originals stay in `apps/web/src/scenes/*Art.tsx` as **non-authoritative swap-back references** (per user decision); `engine/sceneRegistry.ts` points every scene at its `*Pixel` component. The full pipeline + the ten screenshot-learned design rules live in `docs/pixel-prototype-notes.md`; the current playthrough route is `docs/pixel-approval-walkthrough.md`.
+`main` now renders **procedural 8-bit pixel scenes** for all seven rooms (no binary assets — each scene draws into a 160×100 framebuffer and upscales with `image-rendering: pixelated`). The SVG originals were moved to `apps/web/src/scenes/obsolete/` (2026-07-12) as **historical reference only** — no longer swap-back-ready, since they predate both the pixel-feedback relocation and the difficulty pass (see the `obsolete/README.md`); `engine/sceneRegistry.ts` points every scene at its `*Pixel` component. The full pipeline + the ten screenshot-learned design rules live in `docs/pixel-prototype-notes.md`; the current playthrough route is `docs/pixel-approval-walkthrough.md`.
 
 The rework shipped in two waves: all seven scenes first, then a **feedback pass** (`docs/pixel_feedback.md`) merged as one branch. Feedback-pass gameplay changes worth remembering:
 
 - **The valve code (2-0-1-3) moved off the Workshop plaque** — its only copy is a note behind a loose brick in the prison cell. **Getting captured is now the intended route to it** (no backup hint; the DM can always force a player to the cell, and after one escape a Workshop floor hatch reopens the corridor side).
 - **A new `prison-corridor` scene** (SceneId + `PrisonCorridorArtPixel`, same component with a `side` prop): reached via the Workshop hatch; the desk key opens the cell door, which **re-locks every time** (no persistent unlock flag — deliberate).
-- **Hidden clues reveal party-wide**: gallery riddle behind the hound's case, tome order on the Archive's top shelf; captions stay hidden until found. Uses a new **allowlisted `set_party_flag` RPC** (`galleryClueFound`/`archiveClueFound`/`brickOpened`) — the first player-writable flag path, deliberately not a generic setter.
+- **Hidden clues reveal party-wide**: gallery cipher behind the hound's case, tome haiku on the Archive's top shelf; captions stay hidden until found. Uses a new **allowlisted `set_party_flag` RPC** (`galleryClueFound`/`archiveClueFound`/`brickOpened`) — the first player-writable flag path, deliberately not a generic setter. (Clue *encodings* were hardened later — see "Puzzle difficulty pass" below.)
 - **Spire stairwell relocated from Workshop → Vault** (the stairs connect Vault↔Spire; Spire's exit chip now leads to the Vault).
 - **DM warden hide/show toggle** (`dm_set_warden_hidden` + `flags.wardenHidden`) — groundwork for a future noise jump-scare.
 - **Per-room `onEnter` descriptions** (print every entry); the Vault's tracks the convergence diamonds. `showText` actions gained a `when` condition evaluated against **party** flags (distinct from the local-only `onlyIfFlag*`).
@@ -22,6 +22,17 @@ The rework shipped in two waves: all seven scenes first, then a **feedback pass*
 - `20260711120000_pixel_feedback.sql` — `set_party_flag`, `dm_set_warden_hidden`, `add_noise` gains `p_bangs` (**DROP+CREATE**, new signature), `escape_prison` sets `escapedPrison`, `submit_puzzle_attempt` (tome fails now +30, valve fails report wrong-dial count), cheat-sheet notes updated.
 
 **Still deferred (tracked, not built):** the locked-cabinet "harder puzzle" reward (an optional detail-hunt reward, no new scenes — the prison desk key opens the cell door now, so the cabinet still has no key); the Warden noise **jump-scare** that builds on the hide/show toggle. Neither is scheduled.
+
+## Puzzle difficulty pass — clue text only (2026-07-12)
+
+The three Stage-1 clues were rewritten to be harder to read; **answers and scenes/states are unchanged** (server RPCs untouched), so `verify:realtime`'s solve paths still hold. Clue text lives in `packages/content/src/data/scenes.ts` (the authoritative note `showText`, re-readable by re-clicking the hotspot) with short teaser captions in the `*Pixel` art:
+
+- **Archive tomes** — the plain "Violet before Ash, Ash before Ember" became a burn-cycle **haiku** ("Twilight-crowned, it flares / then sinks to pale grey stillness / one coal, still breathing") with no color names; twilight-flare→Violet, pale-grey→Ash, one-coal→Ember, Black Tome unnamed = decoy.
+- **Gallery automatons** — the "never sang" riddle became a **Caesar cipher**: the note reads `FYXPIV`, key = the number of automatons whose eyes blink (**4**; the butler's never do), shift back 4 → `BUTLER`. The blinking hint doubles as both the key and a nudge toward the one calm exhibit.
+- **Workshop valves** — the bare `2 – 0 – 1 – 3` brick note became a **breathing-drill ditty** (raise both arms = 2, empty mind to nothing = 0, one slow breath = 1, pat back three times = 3, in valve order). `PrisonArtPixel` no longer pixel-renders `2013` — the on-canvas note is now unreadable scribble so it doesn't spoil the ditty; `drawDigits` is retired but kept in `dungeonKit`.
+
+**New migration** (applied locally):
+- `20260712100000_dm_cheatsheet_clues.sql` — `create or replace dm_get_solutions`: the DM cheat-sheet `note` fields now describe the new encodings. Solution strings keep their `2 - 0 - 1 - 3` / `Silent Butler` / `Violet -> Ash -> Ember` / `☉` literals (asserted by `verify:realtime`).
 
 ---
 
@@ -73,9 +84,9 @@ Seven build phases are done (Phase 6: polish — neutral dark theme, projection-
 ```
 apps/web/            Vite + React 19 + TS SPA — fully wired: routes, engine, Supabase client, realtime
   src/scenes/pixel/   procedural 8-bit scene components (ACTIVE) + pixelCanvas.ts / dungeonKit.ts / ItemSpritePixel.tsx
-  src/scenes/*Art.tsx  the SVG originals — kept as non-authoritative swap-back references only
+  src/scenes/obsolete/  the SVG originals — historical reference only (stale; see obsolete/README.md)
 packages/content/     Zod content schemas + all 8 scenes / 4 puzzles — validates clean
-supabase/             config.toml + 10 migrations, tested end-to-end against local Docker Supabase
+supabase/             config.toml + 12 migrations, tested end-to-end against local Docker Supabase
 docs/                 pixel-prototype-notes.md (pipeline + design rules), pixel-approval-walkthrough.md (route),
                       pixel_feedback.md (the feedback pass), sprite-art-analysis.md (superseded v2 assessment)
 .claude/skills/verify/  project verify skill — how to spin up + browser-test this repo (READ THIS before re-verifying anything)

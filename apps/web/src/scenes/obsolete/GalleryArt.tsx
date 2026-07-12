@@ -1,5 +1,5 @@
 import { SceneShell } from "./SceneShell";
-import type { ArtProps } from "./artTypes";
+import type { ArtProps } from "../artTypes";
 
 // Ported from the PoC's renderGallery() at ~/Downloads/silent_forge(1).html:489-525.
 const AUTOMATON_COUNT = 5;

@@ -1,5 +1,5 @@
 import { SceneShell } from "./SceneShell";
-import type { ArtProps } from "./artTypes";
+import type { ArtProps } from "../artTypes";
 
 // Ported from the PoC's renderSpire() at silent_forge(1).html:594-625.
 // The ☉ shown on the armed dial is the in-game clue for the Archive lens

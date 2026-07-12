@@ -182,6 +182,18 @@ export async function dmSetWardenHidden(sessionId: string, hidden: boolean) {
   if (error) throw error;
 }
 
+// DM-only: summons the looming waist-up Warden jump-scare into a given scene
+// (players standing in that scene see the bust). Pass "" to dismiss it. Purely
+// cosmetic -- sets flags.wardenRoom and nothing else. Separate mechanic from
+// dmSetWardenHidden (the Workshop statue).
+export async function dmSetWardenRoom(sessionId: string, sceneId: string) {
+  const { error } = await supabase.rpc("dm_set_warden_room", {
+    p_session_id: sessionId,
+    p_scene_id: sceneId,
+  });
+  if (error) throw error;
+}
+
 // Finds the current auth user's existing players row across ANY active
 // session, so a reloaded tab can resume without asking for a name/code again.
 export async function findExistingPlayerRow(userId: string): Promise<PlayerRow | null> {

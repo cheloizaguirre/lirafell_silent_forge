@@ -1,5 +1,5 @@
 import { SceneShell } from "./SceneShell";
-import type { ArtProps } from "./artTypes";
+import type { ArtProps } from "../artTypes";
 
 // Ported from the PoC's renderWorkshop() at ~/Downloads/silent_forge(1).html:309-345.
 // The valve puzzle itself (the four interactive digit dials) is Phase 2 --

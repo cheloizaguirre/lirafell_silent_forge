@@ -1,5 +1,5 @@
 import { SceneShell } from "./SceneShell";
-import type { ArtProps } from "./artTypes";
+import type { ArtProps } from "../artTypes";
 
 // Ported from the PoC's renderVault() at silent_forge(1).html:530-543.
 // Each socket lights up as its component is placed (placed* flags are set

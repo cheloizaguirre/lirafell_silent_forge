@@ -240,7 +240,7 @@ export function GalleryArtPixel({ flags }: ArtProps) {
       <canvas ref={canvasRef} width={W} height={H} className="scene-pixel-canvas" />
       {clueFound && (
         <span className="pixel-caption" style={{ left: "50%", top: "82%" }}>
-          "Only the one who never sang served faithfully."
+          a cipher — count the blinking eyes
         </span>
       )}
     </div>

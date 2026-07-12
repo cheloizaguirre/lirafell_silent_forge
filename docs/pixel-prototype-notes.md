@@ -30,10 +30,12 @@ building the seven scenes, most of it by screenshot.
 
 1. **Readable text is HTML overlays, never canvas pixels.** `.pixel-rune`
    carries the verify suite's `data-converge`/`data-lit` hooks;
-   `.pixel-caption` renders in-scene clues ("Violet before Ash...", the
-   grate caption). Both need their dark backing chip — bare text drowns on
-   busy art. Exception: *digits* work as 3×5 pixel glyphs (the 2-0-1-3
-   engraving), and look great.
+   `.pixel-caption` renders in-scene clue teasers ("a haiku hides on the
+   shelf", the grate caption). Both need their dark backing chip — bare text
+   drowns on busy art. The 3×5 pixel-digit helper `drawDigits` still lives in
+   the kit, but the difficulty pass retired its one use — the brick note's
+   2-0-1-3 — in favour of unreadable scribble, so the ditty clue isn't
+   spoiled on-canvas.
 2. **Sprites need a backdrop of the opposite value — black-on-black AND
    grey-on-grey both fail.** Bitten four times: the grey automaton faded
    into the bricks (→ black+violet against slate), the Warden vanished

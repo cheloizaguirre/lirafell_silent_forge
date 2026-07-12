@@ -237,6 +237,46 @@ main {
   }
 }
 
+/* Warden jump-scare (see WardenJumpScare.tsx): a looming waist-up bust slammed
+   over the scene when the DM summons it into this room. Cosmetic only --
+   pointer-events off so the hotspots underneath still work. Sits above the
+   BANG burst so a scare in progress owns the frame. */
+.warden-scare {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  animation: warden-slam 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.4) both;
+}
+.warden-scare-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+@keyframes warden-slam {
+  0% {
+    transform: scale(1.5) translateY(6%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  45% {
+    transform: scale(0.98) translate(-1%, 0);
+  }
+  60% {
+    transform: scale(1.01) translate(1.5%, 0);
+  }
+  75% {
+    transform: scale(1) translate(-0.8%, 0);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+}
+
 .scene-container {
   position: relative;
   width: 100%;

@@ -7,6 +7,7 @@ import { useSessionState } from "../state/useSessionState";
 import { puzzles } from "@silent-forge/content";
 import { SceneRenderer } from "../engine/SceneRenderer";
 import { NoiseBang } from "../engine/NoiseBang";
+import { WardenJumpScare } from "../engine/WardenJumpScare";
 import type { NoiseEvent } from "../lib/sessionApi";
 import { EliminationPuzzle } from "../engine/puzzles/EliminationPuzzle";
 import { NumericDialPuzzle } from "../engine/puzzles/NumericDialPuzzle";
@@ -132,6 +133,10 @@ export function PlayPage() {
             <NoiseBang
               event={sessionState.flags.noiseEvent as NoiseEvent | undefined}
               selfPlayerId={selfPlayerId}
+            />
+            <WardenJumpScare
+              wardenRoom={String(sessionState.flags.wardenRoom ?? "")}
+              currentSceneId={self.current_scene_id}
             />
           </div>
 
