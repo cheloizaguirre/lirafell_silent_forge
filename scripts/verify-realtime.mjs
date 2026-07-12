@@ -487,6 +487,37 @@ await dm.getByRole("button", { name: "Hidden — bring it back" }).click();
 await aligner.waitForSelector('button.hotspot[aria-label="The Dormant Warden"]', { timeout: 15000 });
 check("Toggling again brings the warden back", true);
 
+// ---- Warden jump-scare: DM summons the looming bust into a room, live -------
+// Purely cosmetic overlay (flags.wardenRoom): the .warden-scare canvas slams
+// over any player standing in the summoned room, and detaches on dismiss.
+// aligner (Player Five) is in the Workshop from the toggle check above.
+await dm.locator("#dm-scare-scene").selectOption({ label: "Workshop Floor" });
+await dm.getByRole("button", { name: "Summon" }).click();
+const scareShown = await aligner
+  .waitForSelector(".warden-scare", { timeout: 15000 })
+  .then(() => true)
+  .catch(() => false);
+check("DM's Summon slams the Warden jump-scare onto a player in that room via realtime", scareShown);
+// The overlay is cosmetic -- it must not swallow the hotspots underneath.
+check("Jump-scare overlay is aria-hidden and click-through (pointer-events: none)",
+  (await aligner.getAttribute(".warden-scare", "aria-hidden")) === "true" &&
+    (await aligner.evaluate(() => getComputedStyle(document.querySelector(".warden-scare")).pointerEvents)) === "none");
+await dm.getByRole("button", { name: /Looming in workshop.*Dismiss/ }).click();
+const scareGone = await aligner
+  .waitForSelector(".warden-scare", { state: "detached", timeout: 15000 })
+  .then(() => true)
+  .catch(() => false);
+check("DM's Dismiss clears the jump-scare live", scareGone);
+
+// A scare summoned into a DIFFERENT room never reaches a player elsewhere:
+// the overlay is gated on wardenRoom === the device's current scene.
+await dm.locator("#dm-scare-scene").selectOption({ label: "Gallery of Automatons" });
+await dm.getByRole("button", { name: "Summon" }).click();
+await aligner.waitForTimeout(1500);
+check("Jump-scare stays out of a room the player isn't in (per-room gate)",
+  (await aligner.locator(".warden-scare").count()) === 0);
+await dm.getByRole("button", { name: /Looming in gallery.*Dismiss/ }).click();
+
 // ---- Grant buttons are inert when the party already holds everything --------
 check("Grant buttons are disabled for items already held",
   await dm.getByRole("button", { name: "Cogwork Heart" }).isDisabled());
