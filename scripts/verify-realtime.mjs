@@ -50,7 +50,7 @@ for (const [who, pg] of [["DM", dm], ["PLAYER", player]]) {
 }
 
 // ---- Setup: DM creates a session -------------------------------------------
-await dm.goto(BASE, { waitUntil: "networkidle" });
+await dm.goto(`${BASE}/dm`, { waitUntil: "networkidle" });
 await dm.fill("#display-name", "DM Chelo");
 await dm.getByRole("button", { name: /Start a new quest/i }).click();
 await dm.waitForURL(/\/dm\/[A-Z0-9]{6}$/, { timeout: 15000 });
@@ -64,7 +64,7 @@ await dm.waitForSelector(".player-list li", { timeout: 15000 });
 await dm.locator(".dm-cheatsheet summary").click();
 const sheet = (await dm.locator(".dm-cheatsheet").textContent()) ?? "";
 check("DM cheat sheet lists every puzzle solution",
-  sheet.includes("Silent Butler") &&
+  sheet.includes("Butler (decodes from the cipher IBASLY)") &&
   sheet.includes("2 - 0 - 1 - 3") &&
   sheet.includes("Violet -> Ash -> Ember") &&
   sheet.includes("☉"));
@@ -123,6 +123,15 @@ check("Wrong case reveals nothing", (await player.locator(".pixel-caption").coun
 await player.click(`button.hotspot[aria-label="Look behind the Hound's case"]`);
 await player.waitForSelector(".pixel-caption", { timeout: 10000 });
 check("Hound-case note reveals the riddle caption", true);
+// Proof shot of the retuned gallery: four-eyed spider (3 blink), the owl's
+// steady right eye, the butler now flickering one eye, and the "look into my
+// eyes" caption. The blink itself is animated -- a still can't show its rate.
+const galleryCaption = (await player.locator(".pixel-caption").textContent()) ?? "";
+check("Gallery caption reads 'look into my eyes...' (not the old count hint)",
+  /look into my eyes, look into my eyes/i.test(galleryCaption) &&
+  !/count the blinking eyes/i.test(galleryCaption),
+  JSON.stringify(galleryCaption.trim()));
+await player.screenshot({ path: `${OUT}pixel-gallery-eyes.png`, fullPage: true });
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("galleryClueFound"),
   "DM sees galleryClueFound set party-wide");
 
@@ -142,7 +151,7 @@ await waitForDm(dm, noiseTile, (t) => /Noise\s*30/.test(t), "DM sees noise rise 
 check("Big BANG burst on the wrong-answer player's own screen", await wrongAnswerBang);
 
 // ---- Player answers CORRECT -> inventory + flag -----------------------------
-await player.getByRole("button", { name: "Silent Butler" }).click();
+await player.getByRole("button", { name: "Butler", exact: true }).click();
 await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => /heart/i.test(t), "DM sees 'heart' added to party inventory");
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("heartFound"), "DM sees 'heartFound' flag set");
 // Feedback: the elimination modal dismisses itself on the correct answer.
@@ -532,7 +541,7 @@ for (const [who, pg] of [["DM2", dm2], ["STUCK", stuck]]) {
   pg.on("pageerror", (e) => errors.push(`${who} pageerror: ${e.message}`));
 }
 
-await dm2.goto(BASE, { waitUntil: "networkidle" });
+await dm2.goto(`${BASE}/dm`, { waitUntil: "networkidle" });
 await dm2.fill("#display-name", "DM Redux");
 await dm2.getByRole("button", { name: /Start a new quest/i }).click();
 await dm2.waitForURL(/\/dm\/[A-Z0-9]{6}$/, { timeout: 15000 });

@@ -16,11 +16,13 @@ import { PAL, drawRoom, drawTorch, usePixelFrame } from "./dungeonKit";
 // 8-bit Gallery of Automatons (proto-vault-8bit branch). The SVG showed five
 // identical silhouettes; here item-identity thinking applies to the suspects:
 // five distinct exhibits (clockwork spider, brass owl, piston hound, cuckoo
-// cannon, silent butler) so the plaque riddle plays against sprites you can
-// actually tell apart. The four alarmed automatons watch with ember eyes that
-// pulse on the flicker frame; the butler -- the one that never sang -- stands
-// calm, a dim crimson glint behind its chest panel. Once the heart is taken,
-// every eye goes dark and the butler's panel hangs open and empty.
+// cannon, butler) so the cipher plays against sprites you can actually tell
+// apart. The cipher key is the count of *blinking* eyes, scattered unevenly:
+// eyes flicker ember-to-flame on the pulse frame, while a few sit steady and
+// dead (and so drop out of the count) -- the spider's fourth eye, one of the
+// owl's, all across the room, and even the butler flickers one eye now. Seven
+// eyes blink in all. Once the heart is taken, every eye goes dark and the
+// butler's panel hangs open and empty.
 
 const W = 160;
 const H = 100;
@@ -33,6 +35,13 @@ const CASE_X = [12, 40, 68, 96, 124] as const;
 // the gallery is beaten.
 function eye(buf: Buf, x: number, y: number, lit: boolean, frame: number): void {
   set(buf, x, y, lit ? (frame === 0 ? PAL.ember : PAL.flame) : PAL.steelDark);
+}
+
+// A steady eye: lit, but it never flickers -- it counts as an eye yet not as a
+// *blinking* eye. The spider's fourth eye, dead and dull, sits out the cipher
+// count (7 eyes blink; this one does not).
+function steadyEye(buf: Buf, x: number, y: number, lit: boolean): void {
+  set(buf, x, y, lit ? PAL.heartDim : PAL.steelDark);
 }
 
 // Museum display case: wood cabinet, brass studs, a glass window over a dark
@@ -80,8 +89,12 @@ function drawSpider(buf: Buf, cx: number, lit: boolean, frame: number): void {
   // mandibles
   set(buf, cx - 1, 59, PAL.steelDark);
   set(buf, cx + 1, 59, PAL.steelDark);
+  // four eyes clustered on the cephalothorax; three flicker, the lower-right
+  // one sits dead and steady (part of the count-the-blinking-eyes cipher).
   eye(buf, cx - 1, 53, lit, frame);
   eye(buf, cx + 1, 53, lit, frame);
+  eye(buf, cx - 1, 55, lit, frame);
+  steadyEye(buf, cx + 1, 55, lit);
 }
 
 function drawOwl(buf: Buf, cx: number, lit: boolean, frame: number): void {
@@ -103,8 +116,9 @@ function drawOwl(buf: Buf, cx: number, lit: boolean, frame: number): void {
   // goggle eyes
   ring(buf, cx - 2, 49, 1, PAL.brassBright);
   ring(buf, cx + 2, 49, 1, PAL.brassBright);
+  // left eye flickers; the right one holds a steady, dead glow (out of the count)
   eye(buf, cx - 2, 49, lit, frame);
-  eye(buf, cx + 2, 49, lit, frame);
+  steadyEye(buf, cx + 2, 49, lit);
   // beak + talons
   set(buf, cx, 51, PAL.brassBright);
   set(buf, cx, 52, PAL.brass);
@@ -162,11 +176,17 @@ function drawCannon(buf: Buf, cx: number, lit: boolean, frame: number): void {
   eye(buf, cx - 3, 49, lit, frame);
 }
 
-function drawButler(buf: Buf, cx: number, lit: boolean, opened: boolean): void {
-  // head; the eyes never flare -- this one doesn't sing
+function drawButler(
+  buf: Buf,
+  cx: number,
+  lit: boolean,
+  opened: boolean,
+  frame: number,
+): void {
+  // head; the left eye flickers like the rest -- it counts toward the cipher
   fillRect(buf, cx - 2, 43, 4, 4, PAL.steel);
-  set(buf, cx - 1, 44, lit ? PAL.paper : PAL.steelDark);
-  // monocle: the scene's one cold cyan note, chain dangling
+  eye(buf, cx - 1, 44, lit, frame);
+  // monocle: the scene's one cold cyan note, a steady lens over the right eye
   set(buf, cx + 1, 44, lit ? PAL.lensCyan : PAL.lensDim);
   set(buf, cx + 2, 45, PAL.brass);
   // long coat with a steel rim-light, shirt front, bowtie
@@ -214,10 +234,10 @@ function draw(
   CASE_X.forEach((x, i) => {
     drawCase(buf, x);
     const cx = x + 11;
-    // eyes pulse on their own slower clock (feedback: the 600ms pulse was
-    // too obvious); torches keep the standard flicker.
+    // eyes pulse on their own clock, faster than the torch flicker so the
+    // blink is easy to spot and count for the cipher.
     if (i < SUSPECTS.length) SUSPECTS[i](buf, cx, lit, eyeFrame);
-    else drawButler(buf, cx, lit, heartFound);
+    else drawButler(buf, cx, lit, heartFound, eyeFrame);
   });
 
   blit(ctx, buf);
@@ -226,7 +246,7 @@ function draw(
 export function GalleryArtPixel({ flags }: ArtProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const frame = usePixelFrame();
-  const eyeFrame = usePixelFrame(1800);
+  const eyeFrame = usePixelFrame(850);
   const heartFound = flags.heartFound === true;
   const clueFound = flags.galleryClueFound === true;
 
@@ -240,7 +260,7 @@ export function GalleryArtPixel({ flags }: ArtProps) {
       <canvas ref={canvasRef} width={W} height={H} className="scene-pixel-canvas" />
       {clueFound && (
         <span className="pixel-caption" style={{ left: "50%", top: "82%" }}>
-          a cipher — count the blinking eyes
+          look into my eyes, look into my eyes
         </span>
       )}
     </div>

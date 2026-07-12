@@ -314,13 +314,13 @@ export const scenes: Scene[] = [
     onEnter: [
       {
         type: "showText",
-        text: "Five wood-and-brass display cases line the gallery, each holding a dead-still automaton. Four pairs of ember eyes smolder as you pass. The fifth exhibit, a butler in tarnished livery, watches with one calm pale eye.",
+        text: "Five wood-and-brass display cases line the gallery, each holding a dead-still automaton. Ember eyes smolder in the gloom — some flicker and blink, others hold a dead, steady glow. Even the butler in tarnished livery, in the fifth case, lets a single eye wink.",
         tone: "system",
         when: { flag: "heartFound", equals: false },
       },
       {
         type: "showText",
-        text: "The gallery sits dark and finished. Five automatons stand lifeless in their cases; the Silent Butler's chest panel hangs open and empty.",
+        text: "The gallery sits dark and finished. Five automatons stand lifeless in their cases; the Butler's chest panel hangs open and empty.",
         tone: "system",
         when: { flag: "heartFound", equals: true },
       },
@@ -356,7 +356,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: "The Silent Butler's chest panel stands open, its mechanism still. The other four automatons sit dark and unmoving.",
+            text: "The Butler's chest panel stands open, its mechanism still. The other four automatons sit dark and unmoving.",
             tone: "flavor",
           },
         ],
@@ -399,7 +399,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           { type: "setPartyFlag", flag: "galleryClueFound" },
           {
             type: "showText",
-            text: 'Wedged behind the piston hound\'s case, your fingers find a folded slip of paper. In a careful hand it reads: "The guilty cannot hold still. Count how many automatons let their eyes flicker and blink — that count is your key. Shift each letter back by it to name the one you may trust: FYXPIV."',
+            text: "Look into my eyes, look into my eyes, look into my eyes... IBASLY",
             tone: "system",
           },
         ],
@@ -415,7 +415,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: 'The paper note rests where it was found: "Count the automatons whose eyes flicker and blink; shift each letter of FYXPIV back by that many to name the one you may trust."',
+            text: "Look into my eyes, look into my eyes, look into my eyes... IBASLY",
             tone: "flavor",
           },
         ],
