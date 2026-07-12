@@ -50,9 +50,6 @@ export function JoinPage() {
         {busy ? "Joining..." : "Join"}
       </button>
       {error && <p className="error">{error}</p>}
-      <p style={{ marginTop: 20, fontSize: 14, color: "var(--muted)" }}>
-        Want to run a quest? <a href="/dm">Start a new one as DM</a>.
-      </p>
     </div>
   );
 }

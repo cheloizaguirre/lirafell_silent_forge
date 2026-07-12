@@ -100,11 +100,12 @@ export function PlayPage() {
 
   return (
     <>
-      <header>
+      <header className="play-header">
         <h1>The Silent Forge</h1>
-        <p className="subtitle">
-          {self.display_name} · code {code?.toUpperCase()}
-        </p>
+        <div className="session-badge">
+          <b>{self.display_name}</b>
+          <span>code {code?.toUpperCase()}</span>
+        </div>
       </header>
       <main className="play-layout">
         <div className="play-main">

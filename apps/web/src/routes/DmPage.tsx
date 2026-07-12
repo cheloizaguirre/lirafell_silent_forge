@@ -125,7 +125,12 @@ export function DmPage() {
     <>
       <header>
         <h1>DM Console</h1>
-        <p className="subtitle">code {code?.toUpperCase()} — share /join/{code?.toUpperCase()} with players</p>
+        <p className="subtitle">
+          Players join at{" "}
+          <code>
+            {window.location.origin}/join/{code?.toUpperCase()}
+          </code>
+        </p>
       </header>
       <main>
         {sessionState.noise >= 100 && sessionId && (
