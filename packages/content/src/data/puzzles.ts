@@ -83,13 +83,15 @@ export const puzzles: PuzzleContent[] = [
     sceneId: "gallery",
     title: "Gallery of Automatons",
     // The answer is no longer posted plainly -- a note behind the piston
-    // hound's case gives a Caesar cipher (FYXPIV) whose key is the number of
-    // automatons with blinking eyes (4); shifting back 4 spells BUTLER.
+    // hound's case gives a Caesar cipher (IBASLY) whose key is the number of
+    // *blinking* eyes scattered across the automatons (7: spider 3 of 4, owl 1
+    // of 2, hound 1, cannon 1, and the butler flickers 1 too -- steady eyes
+    // don't count); shifting back 7 spells BUTLER.
     prompt:
       "Five automatons watch from their cases. Four of them will trigger a loud alarm if disturbed; nothing marks which one is safe.",
     onFailNoise: 30,
     solvedText:
-      "The Silent Butler does not react — but its chest panel clicks and swings open. Inside, nested where a boiler should be, sits a slow-ticking Cogwork Heart. You lift it free.",
+      "You touch the Butler and its chest panel clicks and swings open. Inside, nested where a boiler should be, sits a slow-ticking Cogwork Heart. You lift it free.",
     options: [
       {
         id: "spider",
@@ -113,7 +115,7 @@ export const puzzles: PuzzleContent[] = [
       },
       {
         id: "butler",
-        label: "Silent Butler",
+        label: "Butler",
         wrongFlavor: "",
       },
     ],
