@@ -1,0 +1,36 @@
+# Netlify deploy config for Silent Forge (pnpm monorepo → static Vite SPA).
+#
+# The app is a pure client-side bundle; all backend/realtime traffic goes
+# browser → Supabase directly, so Netlify only serves static files + the SPA
+# fallback below.
+
+[build]
+  # Repo root is the base dir (left as default). Build only the web app;
+  # the @silent-forge/content workspace package is consumed as source, so it
+  # has no build step of its own.
+  command = "pnpm --filter @silent-forge/web build"
+  # Publish path is relative to the repo root.
+  publish = "apps/web/dist"
+
+[build.environment]
+  # Pin Node so local and CI builds match. React 19 / Vite 8 need a modern Node.
+  NODE_VERSION = "22"
+  # pnpm is auto-detected from the root package.json "packageManager" field
+  # (pnpm@11.3.0) via corepack — no extra flag needed.
+
+# SPA fallback: react-router owns client-side routes (/, /dm, /join, ...).
+# Every path that isn't a real static asset must serve index.html with 200
+# so deep links and refreshes don't 404. Netlify checks the filesystem first,
+# so real assets (/assets/*.js, etc.) are still served directly.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# --- Notes ---------------------------------------------------------------
+# Set these in the Netlify UI (Site settings → Environment variables), NOT here,
+# so the anon key isn't committed:
+#   VITE_SUPABASE_URL       = https://<project-ref>.supabase.co
+#   VITE_SUPABASE_ANON_KEY  = <anon public key from Supabase dashboard>
+# They are inlined into the bundle at build time, so a redeploy is required
+# after changing them.
