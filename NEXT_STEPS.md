@@ -1,6 +1,6 @@
 # Silent Forge — Progress & Next Manual Steps
 
-Status as of 2026-07-11. **Phases 1–7 are DONE, and the 8-bit pixel art rework (the top v2 candidate) is DONE and merged to `main`.** Verified end-to-end through a real browser (`pnpm verify:realtime`, **91/91** — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads).
+Status as of 2026-07-13. **Phases 1–7 are DONE, the 8-bit pixel art rework (the top v2 candidate) is DONE and merged to `main`, and the hosted deploy (Supabase + Netlify) is LIVE.** Verified end-to-end through a real browser (`pnpm verify:realtime`, **91/91** — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads). **Multi-device / multi-session play has also been validated by hand against the hosted deploy** (real separate devices across multiple sessions), so real-world multi-user sync is confirmed, not just the simulated-device suite.
 
 ## Pixel art rework — DONE and merged (2026-07-11)
 
@@ -21,7 +21,7 @@ The rework shipped in two waves: all seven scenes first, then a **feedback pass*
 - `20260711090000_end_session.sql` — DM `end_session` (landing "resume or start fresh").
 - `20260711120000_pixel_feedback.sql` — `set_party_flag`, `dm_set_warden_hidden`, `add_noise` gains `p_bangs` (**DROP+CREATE**, new signature), `escape_prison` sets `escapedPrison`, `submit_puzzle_attempt` (tome fails now +30, valve fails report wrong-dial count), cheat-sheet notes updated.
 
-**Still deferred (tracked, not built):** the locked-cabinet "harder puzzle" reward (an optional detail-hunt reward, no new scenes — the prison desk key opens the cell door now, so the cabinet still has no key); the Warden noise **jump-scare** that builds on the hide/show toggle. Neither is scheduled.
+**Warden noise jump-scare — DONE (2026-07-12).** Built on the hide/show toggle: a `wardenRoom` flag drives a `WardenJumpScare` overlay. **Still deferred (tracked, not built):** the locked-cabinet "harder puzzle" reward (an optional detail-hunt reward, no new scenes — the prison desk key opens the cell door now, so the cabinet still has no key). Now specced — a capstone gear-arrangement lock in `docs/cabinet-gears-puzzle-spec.md` — but not yet built or scheduled.
 
 ## Puzzle difficulty pass — clue text only (2026-07-12)
 
@@ -57,24 +57,24 @@ Local Supabase Studio (DB browser/table editor): `http://127.0.0.1:54323`
 
 ## Where v1 stands / what's next
 
-Seven build phases are done (Phase 6: polish — neutral dark theme, projection-scale type, split log, DM-facing noise + BANG bursts; Phase 7: v1 improvements — DM cheat-sheet, visible corner-exit chips + a way back to the Entrance Hall, auto-closing book puzzle). **Per user decision 2026-07-10, the hosted deploy moved to the END of v2** — v1 keeps improving locally against Docker.
+Seven build phases are done (Phase 6: polish — neutral dark theme, projection-scale type, split log, DM-facing noise + BANG bursts; Phase 7: v1 improvements — DM cheat-sheet, visible corner-exit chips + a way back to the Entrance Hall, auto-closing book puzzle). **Per user decision 2026-07-10, the hosted deploy moved to the END of v2** — v1 improved locally against Docker until then. **That deploy is now DONE (2026-07-13) and live on Netlify + hosted Supabase, with multi-device/multi-session play validated by hand — see the "Hosted deploy" section below.**
 
-**The top v2 candidate — 8-bit sprite art — is now DONE and merged (see the "Pixel art rework" section above).** The original estimate (`docs/sprite-art-analysis.md`: "art production dominates, ~1–2 weeks") collapsed: procedural sprites drawn in code took ~a day per several scenes, no binary asset pipeline needed. **Remaining v2 work: the hosted deploy (last), plus the two deferred pixel-era items (locked-cabinet reward puzzle, warden jump-scare) if wanted.**
+**The top v2 candidate — 8-bit sprite art — is now DONE and merged (see the "Pixel art rework" section above).** The original estimate (`docs/sprite-art-analysis.md`: "art production dominates, ~1–2 weeks") collapsed: procedural sprites drawn in code took ~a day per several scenes, no binary asset pipeline needed. **The hosted deploy is now DONE too (Supabase + Netlify — see `docs/DEPLOY.md`), and multi-device/multi-session play has been validated by hand against it.** The warden jump-scare (2026-07-12) also shipped. **Remaining v2 work: only the deferred locked-cabinet reward puzzle, if wanted.**
 
 ## What's NOT built yet
 
-- No hosted Supabase project — real multi-device (not just multi-browser-window) testing needs a hosted project + deployment to a device-reachable URL. **Deliberately deferred to the end of v2.**
 - Everything in the "explicitly deferred beyond v1" list at the bottom of the roadmap.
+- The deferred locked-cabinet reward puzzle (optional, unscheduled) — now specced in `docs/cabinet-gears-puzzle-spec.md` (capstone gear-arrangement lock), pending a build decision.
 
-## Manual step needed from you before deploying (end of v2)
+## Before an actual launch
 
-`supabase login` opens a browser for OAuth — has to happen in your terminal, not Claude's. When you're ready to deploy (or just want real hosted Postgres instead of local Docker):
+- **Author the real puzzle answers.** The current answers (2013 / butler / violet→ash→ember / ☉) are PoC placeholders that appear in tracked docs + the Supabase RPCs — fine for now, but real puzzles should be authored before a public launch. Answers live only in `submit_puzzle_attempt` and the `dm_get_solutions` cheat-sheet (the two places to keep in sync), so swapping them is a new migration, not a bundle change.
 
-1. `supabase login`
-2. Create a project via the [dashboard](https://supabase.com/dashboard) (or reuse one) — **note:** in Authentication settings, enable **Anonymous Sign-ins** (off by default, the whole auth flow depends on it — see `supabase/config.toml`'s `enable_anonymous_sign_ins = true` for the local equivalent, but hosted projects need this toggled in the dashboard separately, `supabase config push` may also work for newer CLI versions but wasn't tested).
-3. `supabase link --project-ref <your-project-ref>` from the repo root.
-4. Tell Claude it's linked — it'll run `supabase db push` (applies all migrations) and update `apps/web/.env.local` to point at the hosted URL/anon key instead of local.
-5. Then: deploy `apps/web` to Vercel/Netlify for a phone-reachable URL (last remaining Phase 1 todo).
+## Hosted deploy — DONE (2026-07-13)
+
+The app is live on Netlify against a hosted Supabase project (full runbook: `docs/DEPLOY.md`). Supabase migrations were pushed with `supabase db push`, **Anonymous Sign-ins is enabled** in the dashboard (the whole auth flow depends on it), and `apps/web` builds and serves from Netlify with `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` set as build-time env vars. **Multi-device / multi-session play was validated by hand against the live site** — separate real devices across multiple sessions synced correctly over hosted realtime, so real-world multi-user is confirmed. Optional remaining: a custom domain (`docs/DEPLOY.md` Part 2 §5).
+
+Updating later: frontend changes auto-deploy on push to the connected branch; DB changes are a new migration + `supabase db push`; changed Supabase env values need a Netlify redeploy (build-time).
 
 ## What's built
 
@@ -86,7 +86,7 @@ apps/web/            Vite + React 19 + TS SPA — fully wired: routes, engine, S
   src/scenes/pixel/   procedural 8-bit scene components (ACTIVE) + pixelCanvas.ts / dungeonKit.ts / ItemSpritePixel.tsx
   src/scenes/obsolete/  the SVG originals — historical reference only (stale; see obsolete/README.md)
 packages/content/     Zod content schemas + all 8 scenes / 4 puzzles — validates clean
-supabase/             config.toml + 12 migrations, tested end-to-end against local Docker Supabase
+supabase/             config.toml + 13 migrations, tested end-to-end against local Docker Supabase (and pushed to hosted)
 docs/                 pixel-prototype-notes.md (pipeline + design rules), pixel-approval-walkthrough.md (route),
                       pixel_feedback.md (the feedback pass), sprite-art-analysis.md (superseded v2 assessment)
 .claude/skills/verify/  project verify skill — how to spin up + browser-test this repo (READ THIS before re-verifying anything)
@@ -102,7 +102,7 @@ docs/                 pixel-prototype-notes.md (pipeline + design rules), pixel-
 - `src/routes/` — `LandingPage`, `JoinPage`, `PlayPage`, `DmPage` (live state dump + the Warden alert panel + the Phase 4 overrides panel: per-player force-scene picker, grant-item buttons that disable once held, standalone clear-noise — the plan's v1 trio, nothing more).
 - `src/index.css` — originally the PoC's gothic-violet palette; since Phase 6 a neutral dark theme with purple as sparing highlight, projection-scale type, the split-log layout (latest panel + history rail), the DM-only noise gauge, and the BANG burst animations.
 
-**`supabase/migrations/`** — ten migrations, all tested against real local Postgres (not just reviewed):
+**`supabase/migrations/`** — 13 migrations, all tested against real local Postgres (not just reviewed) and pushed to hosted. The ten below cover through the pixel-feedback pass; the three newest — `20260712100000_dm_cheatsheet_clues.sql` (difficulty pass, described above), `20260712120000_warden_summon.sql` (warden jump-scare), and `20260712130000_gallery_cipher_key7.sql` (cipher retune) — are covered in their own sections:
 - `20260709124635_init_schema.sql` — `sessions`, `players` (scene is **per-player**), `session_state` (flags/inventory/noise **party-shared**), `puzzle_attempts`. RLS + explicit table-level `GRANT SELECT` (see bug #1 below).
 - `20260709124636_rpc_actions.sql` — `create_session`, `join_session`, `set_current_scene`, `add_noise` (internal), `submit_puzzle_attempt` (Gallery's real answer `'butler'` lives here only). `#variable_conflict use_column` pragma on the two `RETURNS TABLE` functions (see bug #2 below).
 - `20260709181557_enable_realtime.sql` — adds `players`/`session_state` to the `supabase_realtime` publication with `REPLICA IDENTITY FULL` (see bug #3 below — this one was nasty).
