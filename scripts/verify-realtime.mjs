@@ -575,6 +575,104 @@ await stuck.click('button.hotspot[aria-label="Vault Door"]');
 await stuck.waitForSelector('button.hotspot[aria-label="Place Cogwork Heart"]', { timeout: 10000 });
 check("Granted flags opened the Vault door -- party unstuck without solving anything", true);
 
+// ============================================================================
+// Capstone leg. The Master Gearlock (locked cabinet). Optional post-win puzzle:
+// four symbol-gears are already in the lock, but the fifth (keystone) is
+// missing until the DM grants it out of band. Nothing a player can read says
+// where it comes from. Runs on the ORIGINAL session (Player Two, left in the
+// Spire after arming the lever; noise cleared to 0 by Phase 4) with the
+// original DM watching hands-off except for the move and the keystone grant.
+// ============================================================================
+
+// Proof shot of the Spire while Player Two still stands in it: the hidden sun
+// glyph (☉, 2 dots) must read as a clean ring with two countable dots -- no
+// stray ray pixels masquerading as extra dots.
+await player.waitForSelector('button.hotspot[aria-label="Great Lever"]', { timeout: 10000 });
+await player.screenshot({ path: `${OUT}player-spire-sun-clue.png`, fullPage: true });
+
+// ---- DM drops Player Two into the Archive (they ended the win in the Spire) -
+await dm.locator("#dm-move-player").selectOption({ label: "Player Two" });
+await dm.locator("#dm-move-scene").selectOption({ label: "Archive & Study" });
+await dm.getByRole("button", { name: "Move player" }).click();
+await player.waitForSelector('button.hotspot[aria-label="Locked Cabinet"]', { timeout: 15000 });
+check("Cabinet reads 'sealed' before the keystone is granted",
+  (await player.locator('[data-cabinet="sealed"]').count()) === 1);
+
+// ---- The fifth gear is locked: the keystone tile is disabled ---------------
+await player.click('button.hotspot[aria-label="Locked Cabinet"]');
+await player.waitForSelector(".puzzle-panel", { timeout: 10000 });
+check("Master Gearlock puzzle opened", true);
+const keystoneMissing = player.getByRole("button", { name: "▢ — missing" });
+check("Keystone tile shows '▢ — missing' and is disabled before the grant",
+  (await keystoneMissing.count()) === 1 && (await keystoneMissing.isDisabled()));
+// The four symbol-gears can be pre-arranged but the puzzle can never resolve
+// while the fifth is unpickable (sequenceLength 5) -- no early solve.
+for (const gear of ["⊹ Gear", "□ Gear", "☉ Gear", "△ Gear"]) {
+  await player.getByRole("button", { name: gear }).click();
+  await player.waitForTimeout(150);
+}
+check("Cabinet stays sealed after arranging the four symbol-gears (fifth locked)",
+  (await player.locator('[data-cabinet="sealed"]').count()) === 1);
+await player.getByRole("button", { name: "Step back" }).click();
+
+// ---- DM grants the keystone; it propagates to the player via realtime -------
+check("Grant Keystone Gear button is enabled before the grant",
+  !(await dm.getByRole("button", { name: "Grant Keystone Gear" }).isDisabled()));
+await dm.getByRole("button", { name: "Grant Keystone Gear" }).click();
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("keystoneFound"),
+  "DM sees keystoneFound set after the grant");
+check("Grant Keystone Gear button disables once granted",
+  await dm.getByRole("button", { name: /Keystone Gear granted/ }).isDisabled());
+await player.waitForSelector('[data-cabinet="ready"]', { timeout: 15000 });
+check("Cabinet reads 'ready' (center spindle seated) on the player via realtime", true);
+
+// ---- Wrong order is LOUD (+30); correct order opens the cabinet -------------
+await player.click('button.hotspot[aria-label="Locked Cabinet"]');
+await player.waitForSelector(".puzzle-panel", { timeout: 10000 });
+check("Keystone tile is now pickable ('Keystone Gear')",
+  !(await player.getByRole("button", { name: "Keystone Gear" }).isDisabled()));
+const cabinetBang = player
+  .waitForSelector(".noise-bang-big", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
+// Wrong: spire/workshop swapped (keystone still last) -> jams, +30 noise.
+for (const gear of ["□ Gear", "⊹ Gear", "☉ Gear", "△ Gear", "Keystone Gear"]) {
+  await player.getByRole("button", { name: gear }).click();
+  await player.waitForTimeout(150);
+}
+check("Big BANG on the wrong Gearlock arrangement", await cabinetBang);
+await waitForDm(dm, noiseTile, (t) => /Noise\s*30/.test(t), "Wrong Gearlock order costs +30 noise");
+// The wrong attempt resets the picks; wait for the status line before re-picking.
+await player
+  .locator(".puzzle-sequence-status")
+  .filter({ hasText: "Choose 5 in order" })
+  .waitFor({ timeout: 10000 });
+// Correct order (by id): Workshop(⊹) -> Spire(□) -> Gallery(☉) -> Archive(△) -> Keystone.
+for (const gear of ["⊹ Gear", "□ Gear", "☉ Gear", "△ Gear", "Keystone Gear"]) {
+  await player.getByRole("button", { name: gear }).click();
+  await player.waitForTimeout(150);
+}
+await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("cabinetOpened"),
+  "Correct Gearlock order sets cabinetOpened");
+await player.waitForSelector('[data-cabinet="open"]', { timeout: 10000 });
+check("Cabinet renders open once solved", true);
+const cabinetModalGone = await player
+  .waitForSelector(".puzzle-panel", { state: "detached", timeout: 10000 })
+  .then(() => true)
+  .catch(() => false);
+check("Gearlock puzzle auto-closed on solve", cabinetModalGone);
+// The reward is DM-narrated: solving grants no item and names nothing inside.
+const cabinetInv = (await dm.locator(".objective:has(b:text-is('Inventory'))").textContent()) ?? "";
+check("Solving grants no cabinet item (reward is DM-narrated)",
+  cabinetInv.includes("keystone") && !/gearlock|cabinet/i.test(cabinetInv));
+
+// ---- The cabinet solution rides the same role-gated cheat sheet -------------
+const capSheet = (await dm.locator(".dm-cheatsheet").textContent()) ?? "";
+check("DM cheat sheet lists the Master Gearlock solution (answers only in the RPC)",
+  capSheet.includes("Workshop(1) -> Spire(2) -> Gallery(3) -> Archive(4) -> Keystone"));
+
+await player.screenshot({ path: `${OUT}player-cabinet-open.png`, fullPage: true });
+
 await dm.screenshot({ path: `${OUT}dm-console-live.png`, fullPage: true });
 await player.screenshot({ path: `${OUT}player-spire.png`, fullPage: true });
 await watcher.screenshot({ path: `${OUT}watcher-vault-won.png`, fullPage: true });

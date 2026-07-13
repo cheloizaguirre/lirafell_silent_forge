@@ -11,7 +11,7 @@ import {
   blit,
 } from "./pixelCanvas";
 import type { Buf } from "./pixelCanvas";
-import { PAL, drawRoom, drawTorch, usePixelFrame } from "./dungeonKit";
+import { PAL, drawRoom, drawTorch, drawGlyph, drawDots, usePixelFrame } from "./dungeonKit";
 
 // 8-bit Gallery of Automatons (proto-vault-8bit branch). The SVG showed five
 // identical silhouettes; here item-identity thinking applies to the suspects:
@@ -239,6 +239,12 @@ function draw(
     if (i < SUSPECTS.length) SUSPECTS[i](buf, cx, lit, eyeFrame);
     else drawButler(buf, cx, lit, heartFound, eyeFrame);
   });
+
+  // ---- Hidden capstone clue: eye ◉, ringed by 3 dots -> slot 3 -------------
+  // On the wall above the cases, between the torches, low-contrast. Matches
+  // the "◉ Gear" tile in the cabinet-gears puzzle. Pure decor, no state.
+  drawGlyph(buf, "eye", 80, 22, PAL.steelDark);
+  drawDots(buf, 80, 22, 3, PAL.steelDark);
 
   blit(ctx, buf);
 }

@@ -586,8 +586,27 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         },
       },
       {
+        // The Master Gearlock (capstone). openPuzzle actions can't carry a
+        // `when`, so the two states are two mutually-exclusive hotspots on the
+        // same box, gated on cabinetOpened -- exactly like memory-lens /
+        // lens-realign. Unsolved: the lock always opens the five-gear puzzle
+        // (the missing keystone tile is disabled inside the puzzle, not here).
+        // The cabinet gives no order clue itself -- that lives out in the rooms.
         id: "locked-cabinet",
         label: "Locked Cabinet",
+        x: 78,
+        y: 52,
+        w: 15,
+        h: 32,
+        actions: [{ type: "openPuzzle", puzzleId: "cabinet-gears" }],
+        visibleWhen: { flag: "cabinetOpened", equals: false },
+      },
+      {
+        // Solved: the aftermath flavor, re-readable; the puzzle never reopens.
+        // The game stops at the threshold and names nothing inside -- the DM
+        // narrates the reward live at the table.
+        id: "opened-cabinet",
+        label: "Open Cabinet",
         x: 78,
         y: 52,
         w: 15,
@@ -595,10 +614,11 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: "A cabinet, sealed with a gear-shaped lock you have no key for. Whatever Voss kept in here, he meant to keep it hidden.",
+            text: "The cabinet stands open. Whatever it held is in your hands now, or your heads.",
             tone: "flavor",
           },
         ],
+        visibleWhen: { flag: "cabinetOpened", equals: true },
       },
     ],
   },

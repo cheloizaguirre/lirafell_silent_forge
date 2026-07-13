@@ -174,6 +174,77 @@ export function drawDigits(buf: Buf, x: number, y: number, text: string, color: 
   }
 }
 
+// The cabinet-gears capstone hides one small symbol in each of four rooms,
+// ringed by a count of dots = its slot. The same bare glyph (no dots) rides
+// each gear tile in the puzzle UI, so the shapes below are the shared visual
+// identity a paying-attention player matches room->gear. Every glyph fits in
+// roughly an 11x11 box centered on (cx, cy); keep them mutually distinct and
+// distinct from the lens dial sigils (✦ ☾ ☉ ◈ ⚙).
+export type GlyphName = "cross" | "box" | "eye" | "triangle";
+
+export function drawGlyph(buf: Buf, name: GlyphName, cx: number, cy: number, color: RGB): void {
+  switch (name) {
+    case "cross": {
+      // valve cross ⊹ -- a plain plus, the pipe-valve handle mark (Workshop).
+      for (let d = -2; d <= 2; d++) {
+        set(buf, cx + d, cy, color);
+        set(buf, cx, cy + d, color);
+      }
+      break;
+    }
+    case "box": {
+      // box □ -- a hollow 5x5 square (Spire). Deliberately angular with no
+      // center mark, so it never reads like the round eye/sun; one connected
+      // shape so the ringing count-dots stand alone.
+      for (let d = -2; d <= 2; d++) {
+        set(buf, cx + d, cy - 2, color);
+        set(buf, cx + d, cy + 2, color);
+        set(buf, cx - 2, cy + d, color);
+        set(buf, cx + 2, cy + d, color);
+      }
+      break;
+    }
+    case "eye": {
+      // eye ◉ -- an almond outline with a pupil (Gallery). Shaped, not a bare
+      // disc, so it never reads as the sun.
+      set(buf, cx - 3, cy, color);
+      set(buf, cx + 3, cy, color);
+      set(buf, cx - 2, cy - 1, color);
+      set(buf, cx + 2, cy - 1, color);
+      set(buf, cx - 2, cy + 1, color);
+      set(buf, cx + 2, cy + 1, color);
+      for (const dx of [-1, 0, 1] as const) {
+        set(buf, cx + dx, cy - 2, color);
+        set(buf, cx + dx, cy + 2, color);
+      }
+      set(buf, cx, cy, color); // pupil
+      break;
+    }
+    case "triangle": {
+      // flame/triangle △ -- a triangle outline pointing up (Archive).
+      set(buf, cx, cy - 2, color);
+      set(buf, cx - 1, cy - 1, color);
+      set(buf, cx + 1, cy - 1, color);
+      set(buf, cx - 2, cy, color);
+      set(buf, cx + 2, cy, color);
+      set(buf, cx - 3, cy + 1, color);
+      set(buf, cx + 3, cy + 1, color);
+      for (let dx = -3; dx <= 3; dx++) set(buf, cx + dx, cy + 2, color);
+      break;
+    }
+  }
+}
+
+// Place `n` single-pixel dots evenly around (cx, cy) at radius `r`, the first
+// at the top. The dot count is the puzzle's whole message: it equals the
+// gear's slot in the lock.
+export function drawDots(buf: Buf, cx: number, cy: number, n: number, color: RGB, r = 6): void {
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    set(buf, cx + Math.round(r * Math.cos(a)), cy + Math.round(r * Math.sin(a)), color);
+  }
+}
+
 export function drawTorch(buf: Buf, x: number, y: number, frame: number): void {
   // warm glow halo first, so the flame draws over it
   ditherDisc(buf, x + 2, y, 8, PAL.brass, true);

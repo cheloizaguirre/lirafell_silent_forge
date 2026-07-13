@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { puzzles } from "@silent-forge/content";
 import type { OrderedSequencePuzzleContent } from "@silent-forge/content";
+import type { FlagValue } from "../../lib/sessionApi";
 import { submitPuzzleAttempt } from "../../lib/sessionApi";
 
 export function OrderedSequencePuzzle({
@@ -9,12 +10,17 @@ export function OrderedSequencePuzzle({
   onSolved,
   onClose,
   log,
+  flags = {},
 }: {
   puzzleId: string;
   sessionId: string;
   onSolved: () => void;
   onClose: () => void;
   log: (text: string, tone: "flavor" | "system" | "warn") => void;
+  // Party flags, used to gate `requiresFlag` items (e.g. the cabinet's locked
+  // keystone tile). Optional so sequence puzzles with no gated items work
+  // unchanged.
+  flags?: Record<string, FlagValue>;
 }) {
   const puzzle = puzzles.find(
     (p): p is OrderedSequencePuzzleContent => p.id === puzzleId && p.kind === "ordered-sequence",
@@ -23,6 +29,11 @@ export function OrderedSequencePuzzle({
   const [pending, setPending] = useState(false);
 
   if (!puzzle) return null;
+
+  // A gated item stays disabled (and shows its lockedLabel) until its flag is
+  // truthy in party state.
+  const isLocked = (item: OrderedSequencePuzzleContent["items"][number]) =>
+    item.requiresFlag != null && flags[item.requiresFlag] !== true;
 
   const labelFor = (id: string) => puzzle.items.find((i) => i.id === id)?.label ?? id;
 
@@ -62,20 +73,23 @@ export function OrderedSequencePuzzle({
         <h2 id="puzzle-title">{puzzle.title}</h2>
         <p>{puzzle.prompt}</p>
         <div className="puzzle-options">
-          {puzzle.items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="puzzle-option"
-              disabled={pending || picked.includes(item.id)}
-              onClick={() => void handlePick(item.id)}
-            >
-              {item.label}
-              {picked.includes(item.id) && (
-                <span className="puzzle-pick-order"> · {picked.indexOf(item.id) + 1}</span>
-              )}
-            </button>
-          ))}
+          {puzzle.items.map((item) => {
+            const locked = isLocked(item);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="puzzle-option"
+                disabled={pending || locked || picked.includes(item.id)}
+                onClick={() => void handlePick(item.id)}
+              >
+                {locked ? (item.lockedLabel ?? item.label) : item.label}
+                {picked.includes(item.id) && (
+                  <span className="puzzle-pick-order"> · {picked.indexOf(item.id) + 1}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
         <p className="puzzle-sequence-status">
           {picked.length === 0

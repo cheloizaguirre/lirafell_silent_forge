@@ -56,6 +56,13 @@ export const OrderedSequencePuzzleSchema = PuzzleBase.extend({
       z.object({
         id: z.string(),
         label: z.string(),
+        // Generic flag-gate for a choice: while `requiresFlag` is not truthy in
+        // party flags, the item renders disabled under `lockedLabel` (falling
+        // back to `label`) and can't be picked. Used by the cabinet-gears
+        // keystone tile; other sequence puzzles simply omit both and are
+        // unaffected. Answers still live only in the RPC.
+        requiresFlag: z.string().optional(),
+        lockedLabel: z.string().optional(),
       }),
     )
     .min(2),
