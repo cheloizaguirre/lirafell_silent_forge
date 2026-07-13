@@ -75,6 +75,30 @@ const ITEMS: Record<string, ItemSprite> = {
       set(buf, 1, 1, PAL.brassBright);
     },
   },
+  // The keystone (crown) gear: a brass cog with the blank hollow-diamond crown
+  // at its heart -- the ◇ identity from the cabinet-gears puzzle. Only the
+  // DM-granted keystone ever reaches inventory; the four symbol-gears are
+  // puzzle-content tiles, not items.
+  keystone: {
+    name: "Keystone Gear",
+    w: 7,
+    h: 7,
+    draw: (buf) => {
+      disc(buf, 3, 3, 3, PAL.brass);
+      ring(buf, 3, 3, 3, PAL.brassLight);
+      // four cog teeth at the cardinal points
+      set(buf, 3, 0, PAL.brassBright);
+      set(buf, 3, 6, PAL.brassBright);
+      set(buf, 0, 3, PAL.brassBright);
+      set(buf, 6, 3, PAL.brassBright);
+      // hollow diamond crown at the center (blank -- no symbol)
+      for (const [dx, dy] of [
+        [3, 1], [2, 2], [4, 2], [1, 3], [5, 3], [2, 4], [4, 4], [3, 5],
+      ] as const) {
+        set(buf, dx, dy, PAL.steelDark);
+      }
+    },
+  },
 };
 
 export function ItemSpritePixel({ itemId }: { itemId: string }) {

@@ -12,7 +12,8 @@ import {
   blit,
   rgb,
 } from "./pixelCanvas";
-import { PAL, drawRoom, drawTorch, usePixelFrame } from "./dungeonKit";
+import type { Buf } from "./pixelCanvas";
+import { PAL, drawRoom, drawTorch, drawGlyph, drawDots, usePixelFrame } from "./dungeonKit";
 
 // 8-bit Archive & Study (proto-vault-8bit branch). The tome shelf and its
 // inscription are the puzzle surface, so both must read from a couch: the
@@ -47,6 +48,52 @@ interface ArchiveState {
   lensFound: boolean;
   armed: boolean;
   aligned: boolean;
+  keystoneFound: boolean;
+  cabinetOpened: boolean;
+}
+
+// The Master Gearlock cabinet (capstone). Three looks: sealed with a
+// five-spindle gear lock (center spindle an empty socket until the keystone
+// is granted), the same with the keystone seated once keystoneFound, and
+// folded open once solved (cabinetOpened). Geometry keeps the old hotspot box
+// (x78-93%, y52-84%).
+function drawCabinet(buf: Buf, keystoneFound: boolean, cabinetOpened: boolean): void {
+  frameRect(buf, 125, 54, 24, 24, PAL.woodDark);
+  for (let x = 126; x < 148; x++) set(buf, x, 54, PAL.woodLight);
+
+  if (cabinetOpened) {
+    // iron face folded open on a still, dark interior; something within
+    // catches the light (the game names nothing -- the DM narrates it).
+    fillRect(buf, 126, 55, 22, 22, PAL.black);
+    for (const lx of [126, 147] as const) {
+      fillRect(buf, lx, 55, 2, 22, PAL.woodDark);
+      for (let y = 55; y < 77; y++) set(buf, lx === 126 ? 127 : 146, y, PAL.wood);
+    }
+    ditherRect(buf, 131, 60, 8, 12, PAL.steelDark, true);
+    set(buf, 136, 64, PAL.brassBright);
+    set(buf, 137, 65, PAL.brassLight);
+    set(buf, 135, 66, PAL.brass);
+    return;
+  }
+
+  // sealed: wood doors, inset panels, center seam
+  fillRect(buf, 126, 55, 22, 22, PAL.wood);
+  frameRect(buf, 128, 57, 8, 18, PAL.woodDark);
+  frameRect(buf, 138, 57, 8, 18, PAL.woodDark);
+  for (let y = 55; y < 77; y++) set(buf, 137, y, PAL.woodDark);
+  // iron lock plate carrying the five gear spindles
+  fillRect(buf, 126, 63, 22, 6, PAL.steelDark);
+  for (let x = 126; x < 148; x++) set(buf, x, 63, PAL.steel);
+  [129, 133, 137, 141, 145].forEach((gx, i) => {
+    if (i === 2 && !keystoneFound) {
+      // the bare center spindle: an empty socket until the keystone is seated
+      disc(buf, gx, 66, 1, PAL.black);
+      set(buf, gx, 66, PAL.steelDark);
+    } else {
+      disc(buf, gx, 66, 1, PAL.brass);
+      set(buf, gx, 66, PAL.brassLight);
+    }
+  });
 }
 
 function draw(ctx: CanvasRenderingContext2D, s: ArchiveState, frame: number): void {
@@ -123,18 +170,16 @@ function draw(ctx: CanvasRenderingContext2D, s: ArchiveState, frame: number): vo
   disc(buf, 103, 59, 4, glass);
   set(buf, 102, 58, s.aligned ? PAL.white : PAL.lensLight);
 
-  // ---- Locked cabinet (hotspot x78-93%, y52-84%) ---------------------------
-  fillRect(buf, 125, 54, 24, 24, PAL.wood);
-  frameRect(buf, 125, 54, 24, 24, PAL.woodDark);
-  for (let x = 126; x < 148; x++) set(buf, x, 54, PAL.woodLight);
-  // two inset door panels + center seam
-  frameRect(buf, 128, 57, 8, 18, PAL.woodDark);
-  frameRect(buf, 138, 57, 8, 18, PAL.woodDark);
-  for (let y = 55; y < 77; y++) set(buf, 137, y, PAL.woodDark);
-  // brass lock: knob + keyhole
-  fillRect(buf, 136, 64, 3, 3, PAL.brass);
-  set(buf, 136, 64, PAL.brassLight);
-  set(buf, 137, 66, PAL.black);
+  // ---- The Master Gearlock cabinet (hotspot x78-93%, y52-84%) --------------
+  drawCabinet(buf, s.keystoneFound, s.cabinetOpened);
+
+  // ---- Hidden capstone clue: flame △, ringed by 4 dots -> slot 4 -----------
+  // Burned faintly into the wall between the lens and the cabinet. Matches the
+  // "△ Gear" tile in the cabinet-gears puzzle. Pure decor, no state. Kept off
+  // x102-104 -- the aligned lens beam runs there and would shred the glyph
+  // (this capstone is usually played post-convergence, beam lit).
+  drawGlyph(buf, "triangle", 116, 30, PAL.steelDark);
+  drawDots(buf, 116, 30, 4, PAL.steelDark);
 
   blit(ctx, buf);
 }
@@ -147,6 +192,8 @@ export function ArchiveArtPixel({ flags }: ArtProps) {
     lensFound: flags.lensFound === true,
     armed: flags.armed === true,
     aligned: flags.aligned === true,
+    keystoneFound: flags.keystoneFound === true,
+    cabinetOpened: flags.cabinetOpened === true,
   };
   const clueFound = flags.archiveClueFound === true;
 
@@ -154,7 +201,7 @@ export function ArchiveArtPixel({ flags }: ArtProps) {
     const ctx = canvasRef.current?.getContext("2d");
     if (ctx) draw(ctx, state, frame);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.lensFound, state.armed, state.aligned, frame]);
+  }, [state.lensFound, state.armed, state.aligned, state.keystoneFound, state.cabinetOpened, frame]);
 
   return (
     <div className="scene-pixel">
@@ -164,6 +211,12 @@ export function ArchiveArtPixel({ flags }: ArtProps) {
           a haiku hides on the shelf
         </span>
       )}
+      {/* Read-only hook for the verify suite, mirroring VaultArt's data-converge.
+          Carries no visual weight; the cabinet look lives in the canvas above. */}
+      <span
+        className="sr-only"
+        data-cabinet={state.cabinetOpened ? "open" : state.keystoneFound ? "ready" : "sealed"}
+      />
     </div>
   );
 }

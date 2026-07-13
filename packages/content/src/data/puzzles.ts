@@ -120,4 +120,32 @@ export const puzzles: PuzzleContent[] = [
       },
     ],
   },
+  {
+    kind: "ordered-sequence",
+    id: "cabinet-gears",
+    sceneId: "archive",
+    title: "The Master Gearlock",
+    // The order is nowhere on the cabinet. Each of the four symbols is hidden
+    // in the room it belongs to, ringed by a count of dots = its slot; the
+    // blank crown takes the leftover slot by elimination. The answer lives in
+    // the RPC (submit_puzzle_attempt / dm_get_solutions) only.
+    prompt:
+      "Four gears sit in the lock, each etched with a small symbol, and a blank crown belongs at their heart. You have seen each of these marks somewhere in these halls, and something ringed every one of them — all but the crown, which was ringed by nothing and has no place of its own.",
+    onFailNoise: 30,
+    wrongText:
+      "The train jams with a shriek of tortured metal and kicks back — that was LOUD. The gears reset to their resting teeth.",
+    solvedText:
+      "Five gears bite as one. The train spins up with a deep, resonant hum you feel in your teeth, and the cabinet's iron face folds slowly open. Cold, still air breathes out of the dark inside, and something within catches the light. It has been waiting a long time.",
+    items: [
+      { id: "gallery", label: "☉ Gear" },
+      { id: "workshop", label: "⊹ Gear" },
+      { id: "archive", label: "△ Gear" },
+      { id: "spire", label: "□ Gear" },
+      // Locked until the DM grants it: shown as a disabled "▢ — missing" tile
+      // until flags.keystoneFound is set, then it becomes pickable under its
+      // real label. The server refuses a keystone-less submit as a backstop.
+      { id: "keystone", label: "Keystone Gear", requiresFlag: "keystoneFound", lockedLabel: "▢ — missing" },
+    ],
+    sequenceLength: 5,
+  },
 ];

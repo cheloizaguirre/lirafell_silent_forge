@@ -11,7 +11,7 @@ import {
   set,
   blit,
 } from "./pixelCanvas";
-import { PAL, drawSpireTop, drawTorch, usePixelFrame } from "./dungeonKit";
+import { PAL, drawSpireTop, drawTorch, drawGlyph, drawDots, usePixelFrame } from "./dungeonKit";
 
 // 8-bit Aether Spire (proto-vault-8bit branch). The only outdoor scene:
 // drawSpireTop's night sky, starfield, and parapet replace the dungeon
@@ -98,6 +98,15 @@ function draw(ctx: CanvasRenderingContext2D, s: SpireState, frame: number): void
     set(buf, 83, 58, PAL.brassBright);
     set(buf, 86, 57, frame === 0 ? PAL.purpleBright : PAL.purple);
   }
+
+  // ---- Hidden capstone clue: box □, ringed by 2 dots -> slot 2 -------------
+  // Etched into the parapet wall, low-contrast. A hollow square (angular, no
+  // center mark) so it never reads like the Gallery's round eye; matches the
+  // "□ Gear" tile in the puzzle. x106 sits under a crenel gap (open sky above)
+  // and off the mortar-joint columns, so both count-dots (above/below) stay
+  // isolated and cleanly countable.
+  drawGlyph(buf, "box", 106, 70, PAL.steelDark);
+  drawDots(buf, 106, 70, 2, PAL.steelDark);
 
   blit(ctx, buf);
 }

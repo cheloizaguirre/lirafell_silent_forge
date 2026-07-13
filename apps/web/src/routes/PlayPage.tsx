@@ -173,27 +173,44 @@ export function PlayPage() {
       {openPuzzleId &&
         (() => {
           const kind = puzzles.find((p) => p.id === openPuzzleId)?.kind;
-          const PuzzleComponent =
-            kind === "elimination"
-              ? EliminationPuzzle
-              : kind === "numeric-dial"
-                ? NumericDialPuzzle
-                : kind === "ordered-sequence"
-                  ? OrderedSequencePuzzle
-                  : null;
-          return (
-            PuzzleComponent && (
-              <PuzzleComponent
+          const onSolved = () => {
+            /* session_state updates arrive via realtime; nothing to do locally */
+          };
+          const onClose = () => setOpenPuzzleId(null);
+          if (kind === "elimination")
+            return (
+              <EliminationPuzzle
                 puzzleId={openPuzzleId}
                 sessionId={sessionId}
                 log={appendLog}
-                onSolved={() => {
-                  /* session_state updates arrive via realtime; nothing to do locally */
-                }}
-                onClose={() => setOpenPuzzleId(null)}
+                onSolved={onSolved}
+                onClose={onClose}
               />
-            )
-          );
+            );
+          if (kind === "numeric-dial")
+            return (
+              <NumericDialPuzzle
+                puzzleId={openPuzzleId}
+                sessionId={sessionId}
+                log={appendLog}
+                onSolved={onSolved}
+                onClose={onClose}
+              />
+            );
+          if (kind === "ordered-sequence")
+            return (
+              <OrderedSequencePuzzle
+                puzzleId={openPuzzleId}
+                sessionId={sessionId}
+                log={appendLog}
+                onSolved={onSolved}
+                onClose={onClose}
+                // The keystone tile gates on party flags (see the cabinet-gears
+                // puzzle); archive-books carries no gated items and ignores it.
+                flags={sessionState.flags}
+              />
+            );
+          return null;
         })()}
     </>
   );

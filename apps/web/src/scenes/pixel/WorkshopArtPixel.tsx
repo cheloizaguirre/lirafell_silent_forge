@@ -10,7 +10,7 @@ import {
   set,
   blit,
 } from "./pixelCanvas";
-import { PAL, drawRoom, drawTorch, usePixelFrame } from "./dungeonKit";
+import { PAL, drawRoom, drawTorch, drawGlyph, drawDots, usePixelFrame } from "./dungeonKit";
 
 // 8-bit Workshop Floor (proto-vault-8bit branch). The busiest scene: the
 // Dormant Warden gets the same black+violet colossus treatment as the
@@ -223,6 +223,13 @@ function draw(ctx: CanvasRenderingContext2D, s: WorkshopState, frame: number): v
     for (let x = dx; x < dx + 12; x++) set(buf, x, 57, PAL.steelDark);
     ditherRect(buf, dx + 1, 58, 10, 4, PAL.mortar);
   }
+
+  // ---- Hidden capstone clue: valve cross ⊹, ringed by 1 dot -> slot 1 -------
+  // Stamped on the wall beside the pipe run, low-contrast (near-background
+  // steel). No hotspot, no state -- pure decoration for a paying-attention
+  // player. Matches the "⊹ Gear" tile in the cabinet-gears puzzle.
+  drawGlyph(buf, "cross", 55, 59, PAL.steelDark);
+  drawDots(buf, 55, 59, 1, PAL.steelDark);
 
   blit(ctx, buf);
 }

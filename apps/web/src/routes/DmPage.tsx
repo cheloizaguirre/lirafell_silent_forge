@@ -248,6 +248,22 @@ export function DmPage() {
             ))}
           </div>
           <div className="dm-override-row">
+            {/* The capstone's out-of-band grant. Neutrally labelled on purpose:
+                nothing here (or anywhere a player can read) says where the gear
+                comes from -- the trigger is DM knowledge. Sets keystoneFound,
+                which un-disables the cabinet's locked fifth tile. */}
+            <span className="dm-override-label">Keystone</span>
+            <button
+              type="button"
+              disabled={actionBusy || sessionState.flags.keystoneFound === true}
+              onClick={() => void runDmAction(() => dmGrantItem(sessionId, "keystone"))}
+            >
+              {sessionState.flags.keystoneFound === true
+                ? "Keystone Gear granted ✓"
+                : "Grant Keystone Gear"}
+            </button>
+          </div>
+          <div className="dm-override-row">
             <span className="dm-override-label">Warden</span>
             {/* Party-wide toggle: hides the Workshop colossus (sprite +
                 hotspot) live on every device. Jump-scare groundwork. */}
