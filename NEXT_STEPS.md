@@ -1,6 +1,6 @@
 # Silent Forge — Progress & Next Manual Steps
 
-Status as of 2026-07-13. **Phases 1–7 are DONE, the 8-bit pixel art rework (the top v2 candidate) is DONE and merged to `main`, and the hosted deploy (Supabase + Netlify) is LIVE.** Verified end-to-end through a real browser (`pnpm verify:realtime`, **91/91** — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads). **Multi-device / multi-session play has also been validated by hand against the hosted deploy** (real separate devices across multiple sessions), so real-world multi-user sync is confirmed, not just the simulated-device suite.
+Status as of 2026-07-14. **Phases 1–7 are DONE, the 8-bit pixel art rework (the top v2 candidate) is DONE and merged to `main`, and the hosted deploy (Supabase + Netlify) is LIVE.** Verified end-to-end through a real browser (`pnpm verify:realtime`, **91/91** — seven simulated devices across two sessions by the final leg — plus `pnpm verify:mobile`, 18 layout/touch checks on emulated iPads). **Multi-device / multi-session play has also been validated by hand against the hosted deploy** (real separate devices across multiple sessions), so real-world multi-user sync is confirmed, not just the simulated-device suite.
 
 ## Pixel art rework — DONE and merged (2026-07-11)
 
@@ -33,6 +33,16 @@ The three Stage-1 clues were rewritten to be harder to read; **answers and scene
 
 **New migration** (applied locally):
 - `20260712100000_dm_cheatsheet_clues.sql` — `create or replace dm_get_solutions`: the DM cheat-sheet `note` fields now describe the new encodings. Solution strings keep their `2 - 0 - 1 - 3` / `Silent Butler` / `Violet -> Ash -> Ember` / `☉` literals (asserted by `verify:realtime`).
+
+## Lore/vagueness pass + vault-door change (2026-07-14) — content only, NO migration
+
+Two merge commits on `main` (`lore-vagueness-pass`, then `vault-door-any-component`). **Pure content/prose + one condition swap — no SQL, no new migration, so nothing new to `db push`.** Type-checks clean; not browser-playthrough-verified (would need solving a puzzle to hold a component).
+
+- **Rebrand.** The quest is now **"Brakka's Workshop"** — the owner's full name is **Brakka Voss**, so the collapsed valet's nameplate keeps the "Voss" family name on purpose. The landing-page subtitle is now "A Brakka's Workshop subquest"; the word **"atelier" is gone repo-wide**. A new NPC name, **Milly**, appears in the Archive dial recording (rewritten to an in-character rambling log that drops the old explicit three-keys clue).
+- **Terminology (locked with user):** **"aether"** = the magical force; **"aetheryte"** = a distinct object (the crystal hidden in the Spire mechanism). Don't normalize one to the other.
+- **Clues made even vaguer** (extends the LOCKED 2026-07-12 difficulty pass; answers/RPCs unchanged — do NOT simplify back): bookshelf prompt dropped "in some particular order"; the Gallery-elimination prompt is now just "Which one will you inspect?" and the Gallery `onEnter` dropped the explicit butler-wink sentence (the butler's one blinking eye is still *rendered* in `GalleryArtPixel` via `eye()`, so the 7-blinking-eyes → IBASLY → BUTLER cipher still holds); the Archive haiku middle line is now "burnt spent stillness"; the entrance-hall note and the prison breathing-drill note were reworded vaguer (the explicit "set the valves in the order I relax" line is gone — the order is still encoded in the drill).
+- **Typo/consistency fixes** in the same pass: "keeps makes" → "keeps making" (cabinet prompt), "ultra scene" → "it flares" (a stray error in the haiku's first line), and a dangling `"` closed in the entrance-hall note.
+- **Vault door now opens with ANY one component** (heart/lens/valve), not all three — the gate switched `allOf`→`anyOf` on both the open and sealed hotspots, so players can walk into the antechamber early and see the empty sockets (foreboding by design). The Vault scene already handles partial state: the `allPlaced=false` entry text, per-socket `missingText` gating, and the `allPlaced`-locked stairwell/convergence all still hold.
 
 ---
 
