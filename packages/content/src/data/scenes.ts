@@ -16,7 +16,7 @@ export const scenes: Scene[] = [
     onEnter: [
       {
         type: "showText",
-        text: "Cold air, machine oil, and dust. The entrance hall of Voss's atelier is silent but for a guttering candle on a writing desk. A brass automaton lies slumped against the wall, and the great door into the workshop looms ahead.",
+        text: "Cold air, machine oil, and dust. The entrance hall of Brakka's workshop is silent but for a guttering candle on a writing desk. A brass automaton lies slumped against the wall, and the great door into the workshop looms ahead.",
         tone: "system",
       },
     ],
@@ -33,7 +33,7 @@ export const scenes: Scene[] = [
         actions: [
           {
             type: "showText",
-            text: "You push through the groaning atelier doors into the gloom beyond.",
+            text: "You push through the groaning workshop doors into the gloom beyond.",
             tone: "system",
           },
           { type: "navigate", sceneId: "workshop" },
@@ -51,7 +51,7 @@ export const scenes: Scene[] = [
         actions: [
           {
             type: "showText",
-            text: 'A brass valet-automaton lies collapsed against the wall, long dormant. A nameplate reads: "Voss Household Auxiliary Unit III." Beneath it, scratched by hand: "Three hearts must beat as one, or the silence never breaks."',
+            text: 'A brass valet-automaton lies collapsed against the wall, long dormant. A nameplate reads: "Voss Household Auxiliary Unit III."',
             tone: "flavor",
           },
         ],
@@ -70,7 +70,7 @@ export const scenes: Scene[] = [
           // old first-read/re-read flag pair double-printing).
           {
             type: "showText",
-            text: 'A hurried note, half-burned at the edges: "The defenses still watch. Do NOT make noise — the Warden cannot be fought, only avoided. If it catches you, it will not kill you... but you will not enjoy the cell." — signed with an unfamiliar hand. Its warning still stands.',
+            text: 'A hurried note, the paper old and frail: "I turned on the aether field and left the defenses on. Use the password, the necktie one not the other one. Or just turn it off if you remember how! Just be careful with you know what!"',
             tone: "system",
           },
         ],
@@ -86,13 +86,13 @@ export const scenes: Scene[] = [
     onEnter: [
       {
         type: "showText",
-        text: "The workshop floor sprawls beneath a groaning web of pipes. A heavy vault door is set high in the far wall, doorways lead off to the archive and the gallery — and an enormous steam-golem stands dormant in its alcove. Quietly, now.",
+        text: "The workshop floor sprawls beneath a groaning web of pipes. A heavy vault door is set in the far wall, doorways lead off to the archive and the gallery on the sides — and an enormous steam-golem stands dormant in its alcove. Quietly, for now.",
         tone: "system",
         when: { flag: "wardenHidden", equals: false },
       },
       {
         type: "showText",
-        text: "The workshop floor sprawls beneath a groaning web of pipes. A heavy vault door is set high in the far wall, and doorways lead off to the archive and the gallery. The warden's alcove stands empty.",
+        text: "The workshop floor sprawls beneath a groaning web of pipes. A heavy vault door is set in the far wall, and doorways lead off to the archive and the gallery. The warden's alcove stands empty.",
         tone: "system",
         when: { flag: "wardenHidden", equals: true },
       },
@@ -291,7 +291,7 @@ export const scenes: Scene[] = [
         actions: [
           {
             type: "showText",
-            text: "The vault door is sealed tight, three empty sockets visible through its grate. It will not budge without all three resonance components.",
+            text: "The vault door is sealed tight, three empty sockets visible through its grate. It does not budge.",
             tone: "flavor",
           },
         ],
@@ -314,7 +314,7 @@ export const scenes: Scene[] = [
     onEnter: [
       {
         type: "showText",
-        text: "Five wood-and-brass display cases line the gallery, each holding a dead-still automaton. Ember eyes smolder in the gloom — some flicker and blink, others hold a dead, steady glow. Even the butler in tarnished livery, in the fifth case, lets a single eye wink.",
+        text: "Five wood-and-brass display cases line the gallery, each holding a dead-still automaton. Ember eyes smolder in the gloom — some flicker and blink, others hold a dead, steady glow.",
         tone: "system",
         when: { flag: "heartFound", equals: false },
       },
@@ -399,7 +399,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           { type: "setPartyFlag", flag: "galleryClueFound" },
           {
             type: "showText",
-            text: "Look into my eyes, look into my eyes, look into my eyes... IBASLY",
+            text: "A small plaque reads: Look into my eyes, look into my eyes, look into my eyes... IBASLY",
             tone: "system",
           },
         ],
@@ -415,7 +415,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: "Look into my eyes, look into my eyes, look into my eyes... IBASLY",
+            text: "Nothing else but the plaque that reads: Look into my eyes, look into my eyes, look into my eyes... IBASLY",
             tone: "flavor",
           },
         ],
@@ -507,7 +507,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           { type: "setPartyFlag", flag: "archiveClueFound" },
           {
             type: "showText",
-            text: 'Tucked behind the top shelf\'s spines, your fingers find a slip of paper. Three lines in a careful hand: "Twilight-crowned, it flares / then sinks to pale grey stillness / one coal, still breathing."',
+            text: 'Tucked behind the top shelf\'s spines, your fingers find a slip of paper. Three lines in a careful hand: "Twilight-crowned, it flares / burnt spent stillness / one coal, still breathing."',
             tone: "system",
           },
         ],
@@ -523,7 +523,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: 'The slip of paper rests where it was found: "Twilight-crowned, it flares / then sinks to pale grey stillness / one coal, still breathing."',
+            text: 'The slip of paper rests where it was found: "Twilight-crowned, it flares / burnt spent stillness / one coal, still breathing."',
             tone: "flavor",
           },
         ],
@@ -555,7 +555,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           // old first-listen/re-listen flag pair double-printing).
           {
             type: "showText",
-            text: 'You turn the brass dial. A recorded voice crackles to life, thin and tired: "...if you are hearing this, I am long gone, and the wardens still walk. I built them to guard what should not be woken carelessly. Three keys still my work: a heart that beats without blood, a lens that bends light no eye can see, and a valve that holds back the pressure of a mountain. Silence them all at once, in the antechamber, and the field will fall... Forgive me for what I could not finish." The recording fades to static.',
+            text: 'You turn the brass dial. A recorded voice crackles to life, rambling: "so yes, this one\'s recalibrated now. We have to leave now so I have to hide the aetheryte in the spire mechanism so it keeps working but is also protected. It aligns with the geothermal so it will work for a long time, and Milly\'s weird plan is not even necessary. I think we got this!" The recording fades to static.',
             tone: "system",
           },
         ],
@@ -632,7 +632,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
     onEnter: [
       {
         type: "showText",
-        text: "The vault antechamber. A chunky steel containment ring is set into the far wall above a stone pedestal — three empty sockets shaped for a heart, a lens, and a valve.",
+        text: "The vault antechamber. A chunky steel containment ring is set into the far wall around a stone recess — three empty sockets shaped for a heart, a lens, and a valve.",
         tone: "system",
         when: { flag: "allPlaced", equals: false },
       },
@@ -795,7 +795,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
           {
             type: "activateConvergence",
             successText:
-              "The chamber floods with violet light. A final, resonant CHIME rolls through the workshop, and the anti-aether field shatters into drifting motes of light. The air itself feels different — magic has returned to the Silent Forge.",
+              "The chamber floods with violet light. A final, resonant CHIME rolls through the workshop, and the anti-aether field shatters into drifting motes of light. The air itself feels different — aether has returned to the Silent Forge.",
             resistPrefix: "The convergence resists — ",
             missingTexts: {
               armed: "the Spire mechanism has not been armed",
@@ -857,7 +857,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: "The lever will not budge. Whatever this mechanism does, it clearly answers to something else first — the vault below, perhaps, once it is properly fed.",
+            text: "The lever will not budge. Whatever this mechanism does, it clearly answers to something else first — the vault below, perhaps.",
             tone: "flavor",
           },
         ],
@@ -914,7 +914,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
     onEnter: [
       {
         type: "showText",
-        text: "You wake in a small holding cell, rune-etched bars dulled with rust. The Warden is nowhere in sight — it never follows this far. Everything you carried is still with you.",
+        text: "You wake in a small holding cell, rune-etched bars dulled with rust. The Warden is nowhere in sight. Everything you carried is still with you.",
         tone: "system",
         when: { flag: "escapedPrison", equals: false },
       },
@@ -976,7 +976,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: "On a desk across the corridor sits a heavy iron key. You stretch an arm through the bars until your shoulder aches — it stays a hand's width out of reach.",
+            text: "On a desk across the corridor sits a heavy iron key. You stretch an arm through the bars until your shoulder aches — it stays out of reach.",
             tone: "flavor",
           },
         ],
@@ -1006,7 +1006,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
               { type: "setPartyFlag", flag: "brickOpened" },
               {
                 type: "showText",
-                text: 'You unfold the note. No digits — just a little breathing-drill, in a careful hand: "To bleed off the pressure, here is all that I do: I raise up both arms; I empty my mind to nothing; I draw one slow breath; then I pat my own back — one, two, three. Set the valves to match, in the order I relax."',
+                text: 'You unfold the note. A little breathing-drill, in a careful hand: "When I\'m feeling the pressure, this is what I do: I raise up both arms; I empty my mind to nothing; I draw one slow breath; then I pat myself on the back — one, two, three. Aaaand relax."',
                 tone: "system",
               },
             ],
@@ -1024,7 +1024,7 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: 'The brick sits beside its dark socket, the note flattened on the floor: "...both arms; my mind to nothing; one slow breath; a pat — one, two, three. Set the valves in the order I relax."',
+            text: 'The brick sits beside its dark socket, the note flattened on the floor: "...raise both arms; my mind to nothing; one slow breath; a pat — one, two, three... relax"',
             tone: "flavor",
           },
         ],
