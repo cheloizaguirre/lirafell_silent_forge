@@ -37,8 +37,9 @@ const layoutColumns = (pg) =>
         .length,
   );
 
-// DM creates a session (desktop).
-await dm.goto(BASE, { waitUntil: "networkidle" });
+// DM creates a session (desktop). The DM-start flow lives at /dm (the root
+// route is the player Join page since the base-URL reroute).
+await dm.goto(`${BASE}/dm`, { waitUntil: "networkidle" });
 await dm.fill("#display-name", "DM Layout Check");
 await dm.getByRole("button", { name: /Start a new quest/i }).click();
 await dm.waitForURL(/\/dm\/[A-Z0-9]{6}$/, { timeout: 15000 });
@@ -175,7 +176,7 @@ await land.screenshot({ path: `${OUT}/tablet-landscape-play.png` });
 // tablet context -- reusing a player's context would be correctly refused.
 const dmTabCtx = await browser.newContext({ ...devices["iPad (gen 7) landscape"] });
 const dmTab = await dmTabCtx.newPage();
-await dmTab.goto(BASE, { waitUntil: "networkidle" });
+await dmTab.goto(`${BASE}/dm`, { waitUntil: "networkidle" });
 await dmTab.fill("#display-name", "Tablet DM");
 await dmTab.getByRole("button", { name: /Start a new quest/i }).click();
 await dmTab.waitForURL(/\/dm\/[A-Z0-9]{6}$/, { timeout: 15000 });
