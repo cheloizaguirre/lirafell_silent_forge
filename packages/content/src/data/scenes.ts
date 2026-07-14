@@ -273,8 +273,10 @@ export const scenes: Scene[] = [
         w: 14,
         h: 38,
         actions: [{ type: "navigate", sceneId: "vault" }],
+        // Openable once ANY component is in hand (not all three): let players
+        // walk in early and see the empty sockets -- the foreboding is the point.
         visibleWhen: {
-          allOf: [
+          anyOf: [
             { flag: "heartFound", equals: true },
             { flag: "lensFound", equals: true },
             { flag: "valveFound", equals: true },
@@ -297,7 +299,7 @@ export const scenes: Scene[] = [
         ],
         visibleWhen: {
           not: {
-            allOf: [
+            anyOf: [
               { flag: "heartFound", equals: true },
               { flag: "lensFound", equals: true },
               { flag: "valveFound", equals: true },
