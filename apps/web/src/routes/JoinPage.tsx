@@ -2,25 +2,28 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ensureAnonymousSession } from "../lib/auth";
 import { joinSession } from "../lib/sessionApi";
+import { randomOrcName } from "../lib/orcNames";
 
 export function JoinPage() {
   const { code: codeFromUrl } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [code, setCode] = useState(codeFromUrl?.toUpperCase() ?? "");
   const [displayName, setDisplayName] = useState("");
+  const [fallbackName] = useState(randomOrcName);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleJoin = async () => {
-    if (!code.trim() || !displayName.trim()) {
-      setError("Enter both a join code and your name.");
+    const name = displayName.trim() || fallbackName;
+    if (!code.trim()) {
+      setError("Enter a join code.");
       return;
     }
     setBusy(true);
     setError(null);
     try {
       await ensureAnonymousSession();
-      await joinSession(code.trim().toUpperCase(), displayName.trim());
+      await joinSession(code.trim().toUpperCase(), name);
       navigate(`/play/${code.trim().toUpperCase()}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not join that session.");
@@ -44,7 +47,7 @@ export function JoinPage() {
         id="join-name"
         value={displayName}
         onChange={(e) => setDisplayName(e.target.value)}
-        placeholder="Player B"
+        placeholder={fallbackName}
       />
       <button type="button" disabled={busy} onClick={() => void handleJoin()}>
         {busy ? "Joining..." : "Join"}
