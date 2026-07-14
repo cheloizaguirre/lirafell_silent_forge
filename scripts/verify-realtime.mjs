@@ -446,7 +446,7 @@ await watcher.click('button.hotspot[aria-label="Activate the Convergence"]');
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("won"), "DM sees 'won' flag set");
 await watcher.waitForSelector('[data-converge="won"]', { timeout: 10000 });
 const wonLog = (await watcher.locator(".log-latest").textContent()) ?? "";
-check("Watcher sees the victory narration", wonLog.includes("magic has returned to the Silent Forge"));
+check("Watcher sees the victory narration", wonLog.includes("aether has returned to the Silent Forge"));
 check("Convergence hotspot is gone after the win",
   (await watcher.locator('button.hotspot[aria-label="Activate the Convergence"]').count()) === 0);
 
