@@ -77,7 +77,7 @@ export function LandingPage() {
   return (
     <div className="form-shell">
       <h1>The Silent Forge</h1>
-      <p className="subtitle">A Voss Atelier subquest</p>
+      <p className="subtitle">A Brakka's Workshop subquest</p>
       <label htmlFor="display-name">Your name</label>
       <input
         id="display-name"

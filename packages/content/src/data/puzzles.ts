@@ -41,7 +41,7 @@ export const puzzles: PuzzleContent[] = [
     // bookshelf's upper shelf as a burn-cycle haiku (violet flare -> ash ->
     // ember, no color names named; the Black Tome is the unreferenced decoy).
     prompt:
-      "Four tomes stand in the shelf: violet, ash, black, and ember. Their spines are worn from being pulled in some particular order.",
+      "Four tomes stand in the shelf: violet, ash, black, and ember. Their spines are worn from being pulled, scratches on the tops and sides of the bookcase.",
     onFailNoise: 30,
     wrongText:
       "The shelf SLAMS the tomes back into place, the whole case booming against the wall — that was LOUD.",
@@ -63,7 +63,7 @@ export const puzzles: PuzzleContent[] = [
     prompt:
       "The memory lens sits in a rotating brass housing, five sigils etched around its rim. A faint beam flickers from the Spire above — the lens must be turned to answer whatever sigil the Spire's dial now shows.",
     onFailNoise: 0,
-    wrongText: "The beam scatters, unfocused — that sigil does not match the Spire's dial.",
+    wrongText: "The beam scatters, unfocused — that sigil does not match the Spire's alignment.",
     solvedText:
       "The lens locks into perfect resonance. A thin violet beam lances upward toward the Vault above.",
     dials: [
@@ -88,7 +88,7 @@ export const puzzles: PuzzleContent[] = [
     // of 2, hound 1, cannon 1, and the butler flickers 1 too -- steady eyes
     // don't count); shifting back 7 spells BUTLER.
     prompt:
-      "Five automatons watch from their cases. Four of them will trigger a loud alarm if disturbed; nothing marks which one is safe.",
+      "Five automatons watch from their cases. Which one will you inspect?",
     onFailNoise: 30,
     solvedText:
       "You touch the Butler and its chest panel clicks and swings open. Inside, nested where a boiler should be, sits a slow-ticking Cogwork Heart. You lift it free.",
@@ -130,12 +130,12 @@ export const puzzles: PuzzleContent[] = [
     // blank crown takes the leftover slot by elimination. The answer lives in
     // the RPC (submit_puzzle_attempt / dm_get_solutions) only.
     prompt:
-      "Four gears sit in the lock, each etched with a small symbol, and a blank crown belongs at their heart. You have seen each of these marks somewhere in these halls, and something ringed every one of them — all but the crown, which was ringed by nothing and has no place of its own.",
+      "Four gears sit on top of the cabinet. A mechanism missing five gears keeps making a lever spin uselessly. Each gear is etched with a small symbol. You have seen each of these marks somewhere...",
     onFailNoise: 30,
     wrongText:
       "The train jams with a shriek of tortured metal and kicks back — that was LOUD. The gears reset to their resting teeth.",
     solvedText:
-      "Five gears bite as one. The train spins up with a deep, resonant hum you feel in your teeth, and the cabinet's iron face folds slowly open. Cold, still air breathes out of the dark inside, and something within catches the light. It has been waiting a long time.",
+      "Five gears bite as one. You pull the lever and the train spins up with a deep, resonant hum you feel in your teeth, and the cabinet's iron face folds slowly open. Cold, still air breathes out of the dark inside, and something within catches the light. It has been waiting a long time.",
     items: [
       { id: "gallery", label: "☉ Gear" },
       { id: "workshop", label: "⊹ Gear" },
