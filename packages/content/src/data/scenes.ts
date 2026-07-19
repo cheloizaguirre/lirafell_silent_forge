@@ -1026,7 +1026,26 @@ actions: [{ type: "navigate", sceneId: "workshop" }],
         actions: [
           {
             type: "showText",
-            text: 'The brick sits beside its dark socket, the note flattened on the floor: "...raise both arms; my mind to nothing; one slow breath; a pat — one, two, three... relax"',
+            text: "The brick sits beside its dark socket. The folded note it hid lies flattened on the floor.",
+            tone: "flavor",
+          },
+        ],
+        visibleWhen: { flag: "brickOpened", equals: true },
+      },
+      // Once discovered, the note itself is clickable and re-shows the full
+      // breathing-drill text; the brick hotspot above only points to it.
+      {
+        id: "hidden-note",
+        label: "Folded Note",
+        // the note art sits on the floor below the brick socket (art x9-28px, y83-91px)
+        x: 5,
+        y: 82,
+        w: 14,
+        h: 14,
+        actions: [
+          {
+            type: "showText",
+            text: 'The note, in a careful hand: "When I\'m feeling the pressure, this is what I do: I raise up both arms; I empty my mind to nothing; I draw one slow breath; then I pat myself on the back — one, two, three. Aaaand relax."',
             tone: "flavor",
           },
         ],
