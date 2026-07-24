@@ -128,7 +128,6 @@ main {
   border-left: 3px solid var(--accent);
   padding: 8px 12px;
   border-radius: 2px;
-  /* the DM's Flags dump is one long unbroken JSON string */
   overflow-wrap: anywhere;
 }
 .objective b {
@@ -140,6 +139,65 @@ main {
   text-transform: uppercase;
   display: block;
   margin-bottom: 3px;
+}
+/* The DM's flag checklist. Every known flag is always listed (✅ set / ⬜ not
+   yet), so this has to stay dense: the console already carries a gauge, the
+   roster, the overrides and the cheat sheet. One row per phase, group name in
+   the left gutter, chips wrapping after it -- the whole 17-flag board lands in
+   about the space the old one-line JSON dump took once a session got going.
+   Must sit AFTER `.objective b` above: same specificity, so source order is
+   the only thing keeping that rule's display:block off the header and the
+   chip values. */
+.dm-flags {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.dm-flags b {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.dm-flag-count {
+  font-family: "EB Garamond", serif;
+  font-size: 14px;
+  letter-spacing: 0;
+  color: var(--accent-bright);
+  text-transform: none;
+}
+.dm-flag-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+.dm-flag-group {
+  /* wide enough for the longest label ("placed") to stay on one line */
+  flex: 0 0 58px;
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* inline-flex, not a bare space: the ⬜ glyph fills its box edge to edge and
+   reads as touching its label, while ✅ has built-in padding. */
+.dm-flag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+/* Unset flags recede so the set ones carry the eye down the list. */
+.dm-flag[data-set="false"] {
+  color: var(--muted);
+  opacity: 0.7;
+}
+.dm-flag b {
+  display: inline;
+  font-size: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent-bright);
 }
 /* Player inventory as pixel item sprites (heart / lens / valve). */
 .inventory-items {

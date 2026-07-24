@@ -36,6 +36,19 @@ async function waitForDm(page, selector, predicate, label, timeoutMs = 15000) {
   return false;
 }
 
+// Same hands-off polling, but for one flag on the DM's checklist. That panel
+// now lists every known flag up front (⬜ until set), so a substring match on
+// its text would pass the instant the page rendered -- assert the chip's
+// data-set state instead. Full flag name, not the shortened chip label.
+async function waitForDmFlag(page, flag, label, timeoutMs = 15000) {
+  const ok = await page
+    .waitForSelector(`.dm-flag[data-flag="${flag}"][data-set="true"]`, { timeout: timeoutMs })
+    .then(() => true)
+    .catch(() => false);
+  check(label, ok, ok ? `${flag} set` : `timed out after ${timeoutMs}ms waiting for ${flag}`);
+  return ok;
+}
+
 const browser = await chromium.launch();
 // Two isolated contexts = two devices = two separate anonymous auth identities.
 const ctxA = await browser.newContext();
@@ -132,8 +145,7 @@ check("Gallery caption reads 'look into my eyes...' (not the old count hint)",
   !/count the blinking eyes/i.test(galleryCaption),
   JSON.stringify(galleryCaption.trim()));
 await player.screenshot({ path: `${OUT}pixel-gallery-eyes.png`, fullPage: true });
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("galleryClueFound"),
-  "DM sees galleryClueFound set party-wide");
+await waitForDmFlag(dm, "galleryClueFound", "DM sees galleryClueFound set party-wide");
 
 // ---- Player opens the puzzle, answers WRONG -> noise rises ------------------
 await player.click('button.hotspot[aria-label="Examine the Automatons"]');
@@ -160,7 +172,7 @@ const gallerySolveCheer = player
   .catch(() => false);
 await player.getByRole("button", { name: "Butler", exact: true }).click();
 await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => /heart/i.test(t), "DM sees 'heart' added to party inventory");
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("heartFound"), "DM sees 'heartFound' flag set");
+await waitForDmFlag(dm, "heartFound", "DM sees 'heartFound' flag set");
 check("Big AHA! cheer on the solver's own screen", await gallerySolveCheer);
 // Feedback: the elimination modal dismisses itself on the correct answer.
 const galleryModalGone = await player
@@ -242,8 +254,7 @@ for (let i = 0; i < 3; i++) {
   await player.click('button.hotspot[aria-label="Loose Brick"]');
   await player.waitForTimeout(250);
 }
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("brickOpened"),
-  "DM sees brickOpened set party-wide");
+await waitForDmFlag(dm, "brickOpened", "DM sees brickOpened set party-wide");
 const cellCaptions = await player.locator(".pixel-caption").count();
 check("Brick note caption (2-0-1-3) revealed in the cell", cellCaptions === 1, `${cellCaptions} captions`);
 
@@ -255,8 +266,7 @@ for (let i = 0; i < 3; i++) {
 await waitForDm(dm, ".player-list", (t) => /Player Two[\s\S]*workshop/.test(t), "Grate escape returns Player Two to workshop");
 await waitForDm(dm, noiseTile, (t) => /Noise\s*0(?!\d)/.test(t), "Escape resets party noise to 0");
 check("Warden alert panel is gone after the escape", (await dm.locator(".warden-alert").count()) === 0);
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("escapedPrison"),
-  "DM sees escapedPrison flag set by the escape");
+await waitForDmFlag(dm, "escapedPrison", "DM sees escapedPrison flag set by the escape");
 
 // ---- The corridor loop: hatch -> corridor -> cell door -> cell -> grate out --
 await player.waitForSelector('button.hotspot[aria-label="Floor Hatch"]', { timeout: 10000 });
@@ -314,8 +324,7 @@ check("Wrong shelf reveals nothing", (await player.locator(".pixel-caption").cou
 await player.click(`button.hotspot[aria-label="Search the top shelf"]`);
 await player.waitForSelector(".pixel-caption", { timeout: 10000 });
 check("Top-shelf note reveals the tome-order caption", true);
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("archiveClueFound"),
-  "DM sees archiveClueFound set party-wide");
+await waitForDmFlag(dm, "archiveClueFound", "DM sees archiveClueFound set party-wide");
 
 await player.click('button.hotspot[aria-label="The Colored Tomes"]');
 await player.waitForSelector(".puzzle-panel", { timeout: 10000 });
@@ -341,7 +350,7 @@ for (const socket of ["Place Cogwork Heart", "Place Aether Lens", "Place Pressur
   await player.click(`button.hotspot[aria-label="${socket}"]`);
   await player.waitForSelector(`button.hotspot[aria-label="${socket}"]`, { state: "detached", timeout: 10000 });
 }
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("allPlaced"), "All three placements set allPlaced on the party state");
+await waitForDmFlag(dm, "allPlaced", "All three placements set allPlaced on the party state");
 
 // ============================================================================
 // Phase 3 leg. Stage 2 convergence — the real multi-device bar: three devices
@@ -436,13 +445,13 @@ await player.click('button.hotspot[aria-label="Great Lever"]');
 await waitForDm(dm, noiseTile, (t) => /Noise\s*35/.test(t), "Arming the Spire costs 35 noise (it was LOUD)");
 check("Big BANG burst on the lever-heaver's own screen", await leverBigBang);
 check("Small anonymous BANG on the watcher's screen via realtime", await leverSmallBang);
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("armed"), "DM sees 'armed' flag set");
+await waitForDmFlag(dm, "armed", "DM sees 'armed' flag set");
 
 // ---- Room 2 (Workshop): overflow valve APPEARS via realtime, venter vents ---
 await venter.waitForSelector('button.hotspot[aria-label="Overflow Valve"]', { timeout: 15000 });
 check("Overflow Valve hotspot appeared on the venter's screen via realtime", true);
 await venter.click('button.hotspot[aria-label="Overflow Valve"]');
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("vented"), "DM sees 'vented' flag set");
+await waitForDmFlag(dm, "vented", "DM sees 'vented' flag set");
 
 // ---- Room 3 (Archive): realign hotspot APPEARS via realtime, aligner aligns -
 await aligner.waitForSelector('button.hotspot[aria-label="Realign the Lens"]', { timeout: 15000 });
@@ -479,7 +488,7 @@ const lensSmallCheer = watcher
   })
   .catch(() => false);
 await aligner.getByRole("button", { name: "Lock Alignment" }).click();
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("aligned"), "DM sees 'aligned' flag set");
+await waitForDmFlag(dm, "aligned", "DM sees 'aligned' flag set");
 check("Big AHA! on the aligner's own screen", await lensBigCheer);
 check("Small AHA! on the watcher's screen via realtime", await lensSmallCheer);
 // Feedback: locking the alignment closes the modal by itself.
@@ -499,7 +508,7 @@ check("Watcher took zero navigations/reloads while three rooms acted", watcherNa
 
 // ---- Convergence: the watcher throws the final switch ------------------------
 await watcher.click('button.hotspot[aria-label="Activate the Convergence"]');
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("won"), "DM sees 'won' flag set");
+await waitForDmFlag(dm, "won", "DM sees 'won' flag set");
 await watcher.waitForSelector('[data-converge="won"]', { timeout: 10000 });
 const wonLog = (await watcher.locator(".log-latest").textContent()) ?? "";
 check("Watcher sees the victory narration", wonLog.includes("aether has returned to the Silent Forge"));
@@ -615,9 +624,9 @@ for (const item of ["Cogwork Heart", "Aether Lens", "Pressure Valve Key"]) {
 await waitForDm(dm2, ".objective:has(b:text-is('Inventory'))",
   (t) => t.includes("heart") && t.includes("lens") && t.includes("valve"),
   "dm_grant_item stocked the fresh party's inventory");
-await waitForDm(dm2, ".objective:has(b:text-is('Flags'))",
-  (t) => t.includes("heartFound") && t.includes("lensFound") && t.includes("valveFound"),
-  "Grants set the *Found flags exactly like real solves");
+for (const f of ["heartFound", "lensFound", "valveFound"]) {
+  await waitForDmFlag(dm2, f, `Grant set ${f} exactly like a real solve`);
+}
 
 // Wait for the grants to reach the stuck player's client before touching the
 // Vault Door -- the sealed and open variants share a label, so clicking early
@@ -675,8 +684,7 @@ await player.getByRole("button", { name: "Step back" }).click();
 check("Grant Keystone Gear button is enabled before the grant",
   !(await dm.getByRole("button", { name: "Grant Keystone Gear" }).isDisabled()));
 await dm.getByRole("button", { name: "Grant Keystone Gear" }).click();
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("keystoneFound"),
-  "DM sees keystoneFound set after the grant");
+await waitForDmFlag(dm, "keystoneFound", "DM sees keystoneFound set after the grant");
 check("Grant Keystone Gear button disables once granted",
   await dm.getByRole("button", { name: /Keystone Gear granted/ }).isDisabled());
 await player.waitForSelector('[data-cabinet="ready"]', { timeout: 15000 });
@@ -708,8 +716,7 @@ for (const gear of ["⊹ Gear", "□ Gear", "☉ Gear", "△ Gear", "Keystone Ge
   await player.getByRole("button", { name: gear }).click();
   await player.waitForTimeout(150);
 }
-await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("cabinetOpened"),
-  "Correct Gearlock order sets cabinetOpened");
+await waitForDmFlag(dm, "cabinetOpened", "Correct Gearlock order sets cabinetOpened");
 await player.waitForSelector('[data-cabinet="open"]', { timeout: 10000 });
 check("Cabinet renders open once solved", true);
 const cabinetModalGone = await player
