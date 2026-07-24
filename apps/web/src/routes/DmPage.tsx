@@ -24,6 +24,49 @@ const GRANTABLE_ITEMS = [
   { id: "valve", name: "Pressure Valve Key" },
 ];
 
+// The flag tracker. Flags are only ever SET (nothing writes false; wardenAlert
+// is deleted rather than falsified), so a raw dump could only ever show what's
+// already done -- useless for "where is the party right now?". Listing the
+// known flags up front turns it into a checklist: the DM reads progress and
+// what's outstanding in one glance, mid-session, from across the table.
+//
+// Labels drop the suffix the group already says (items "heart" IS heartFound);
+// the full name rides along in data-flag and the tooltip, which is also what
+// the verify driver asserts on.
+const FLAG_GROUPS = [
+  { label: "clues", flags: ["galleryClueFound", "archiveClueFound", "brickOpened", "escapedPrison"] },
+  { label: "items", flags: ["heartFound", "valveFound", "lensFound", "keystoneFound"] },
+  { label: "placed", flags: ["placedHeart", "placedValve", "placedLens", "allPlaced"] },
+  { label: "final", flags: ["armed", "vented", "aligned", "won", "cabinetOpened"] },
+];
+const FLAG_LABELS: Record<string, string> = {
+  galleryClueFound: "gallery",
+  archiveClueFound: "archive",
+  brickOpened: "brick",
+  escapedPrison: "escaped",
+  heartFound: "heart",
+  valveFound: "valve",
+  lensFound: "lens",
+  keystoneFound: "keystone",
+  placedHeart: "heart",
+  placedValve: "valve",
+  placedLens: "lens",
+  allPlaced: "all",
+  cabinetOpened: "cabinet",
+};
+const TRACKED = new Set(FLAG_GROUPS.flatMap((g) => g.flags));
+
+function FlagChip({ name, set }: { name: string; set: boolean }) {
+  return (
+    <span className="dm-flag" data-flag={name} data-set={set} title={name}>
+      {/* own element so the row's flex gap has something to act between --
+          the ⬜ glyph otherwise butts straight up against its label */}
+      <span>{set ? "✅" : "⬜"}</span>
+      {FLAG_LABELS[name] ?? name}
+    </span>
+  );
+}
+
 // A live dump of flags/inventory/noise/players, plus the two write surfaces:
 // the Warden alert panel (noise 100 -- nothing happens automatically, the DM
 // narrates at the table and decides who gets dragged to the cell or whether
@@ -180,15 +223,56 @@ export function DmPage() {
           <b>Inventory</b>
           {sessionState.inventory.length > 0 ? sessionState.inventory.join(", ") : "empty"}
         </div>
-        <div className="objective">
-          <b>Flags</b>
-          {(() => {
-            // noiseEvent/solveEvent are BANG/AHA plumbing, not game state --
-            // pure churn here (both carry a uuid and a bumping seq).
-            const { noiseEvent: _n, solveEvent: _s, ...dmFlags } = sessionState.flags;
-            return Object.keys(dmFlags).length > 0 ? JSON.stringify(dmFlags) : "none set";
-          })()}
-        </div>
+        {(() => {
+          // noiseEvent/solveEvent are BANG/AHA plumbing, not game state --
+          // pure churn here (both carry a uuid and a bumping seq).
+          const { noiseEvent: _n, solveEvent: _s, ...dmFlags } = sessionState.flags;
+          const isSet = (name: string) => dmFlags[name] === true;
+          const done = [...TRACKED].filter(isSet).length;
+          // Anything the tracker doesn't know about still has to show up --
+          // a flag added later must never silently vanish from the console.
+          const extras = Object.entries(dmFlags).filter(([k]) => !TRACKED.has(k));
+          return (
+            <div className="objective dm-flags">
+              <b>
+                Flags
+                <span className="dm-flag-count">
+                  {done}/{TRACKED.size}
+                </span>
+              </b>
+              {FLAG_GROUPS.map((group) => (
+                <div className="dm-flag-row" key={group.label}>
+                  <span className="dm-flag-group">{group.label}</span>
+                  {group.flags.map((name) => (
+                    <FlagChip key={name} name={name} set={isSet(name)} />
+                  ))}
+                </div>
+              ))}
+              {extras.length > 0 && (
+                <div className="dm-flag-row">
+                  <span className="dm-flag-group">other</span>
+                  {extras.map(([name, value]) =>
+                    // Booleans get the same checkbox treatment; wardenRoom and
+                    // wardenAlert carry a value the DM actually needs to read.
+                    typeof value === "boolean" ? (
+                      <FlagChip key={name} name={name} set={value} />
+                    ) : (
+                      <span
+                        key={name}
+                        className="dm-flag"
+                        data-flag={name}
+                        data-set="true"
+                        title={name}
+                      >
+                        🔸 {name} <b>{String(value)}</b>
+                      </span>
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
         <ul className="player-list">
           {players.map((p) => (
             <li key={p.id}>
