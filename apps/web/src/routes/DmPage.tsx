@@ -183,8 +183,9 @@ export function DmPage() {
         <div className="objective">
           <b>Flags</b>
           {(() => {
-            // noiseEvent is BANG plumbing, not game state -- pure churn here.
-            const { noiseEvent: _omitted, ...dmFlags } = sessionState.flags;
+            // noiseEvent/solveEvent are BANG/AHA plumbing, not game state --
+            // pure churn here (both carry a uuid and a bumping seq).
+            const { noiseEvent: _n, solveEvent: _s, ...dmFlags } = sessionState.flags;
             return Object.keys(dmFlags).length > 0 ? JSON.stringify(dmFlags) : "none set";
           })()}
         </div>
