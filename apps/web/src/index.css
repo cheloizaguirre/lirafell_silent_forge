@@ -17,6 +17,10 @@
   --muted: #9a9ca3;
   --danger: #a3475a;
   --danger-bright: #e0768a;
+  /* Solve cheer (see SolveCheer.tsx): warm gold, the positive twin of danger.
+     The triumphant "you got it" moment -- distinct from both purple and red. */
+  --gold: #d9a520;
+  --gold-bright: #ffdd6b;
 }
 
 * {
@@ -256,6 +260,71 @@ main {
   }
   100% {
     transform: scale(1.02);
+    opacity: 0;
+  }
+}
+
+/* Solve cheer (see SolveCheer.tsx): the celebratory gold "AHA!" burst, the
+   positive twin of the BANG. Big = your own solve, centered over the scene;
+   small = a teammate's, in the BOTTOM-right corner. Shares the BANG's layering
+   so it sits above the puzzle overlay (z 10) and reads clearly through a modal.
+   The opposite corner from the small BANG on purpose: the party works parallel
+   rooms, so one player solving while another answers wrong puts both small
+   bursts on screen inside the same ~1.7s -- and at equal z-index whichever
+   renders later (the cheer) simply swallows the other. Top-left isn't free
+   either; that's where every scene parks its "Back to X" exit chip (x2,y2). */
+.solve-cheer {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 4px 18px rgba(217, 165, 32, 0.45));
+}
+.solve-cheer-big {
+  inset: 0;
+}
+.solve-cheer-big svg {
+  width: min(52%, 340px);
+  animation: cheer-pop 1.7s ease-out forwards;
+}
+.solve-cheer-small {
+  bottom: 12px;
+  right: 12px;
+}
+.solve-cheer-small svg {
+  width: 84px;
+  animation: cheer-pop 1.7s ease-out forwards;
+}
+/* Bouncier and a touch springier than bang-pop -- a happy little rebound
+   rather than a violent slam, with a gentle wobble as it settles. */
+@keyframes cheer-pop {
+  0% {
+    transform: scale(0.3) rotate(-12deg);
+    opacity: 0;
+  }
+  14% {
+    transform: scale(1.22) rotate(6deg);
+    opacity: 1;
+  }
+  28% {
+    transform: scale(0.94) rotate(-4deg);
+  }
+  40% {
+    transform: scale(1.06) rotate(2deg);
+  }
+  52% {
+    transform: scale(0.99) rotate(-1deg);
+  }
+  62% {
+    transform: scale(1) rotate(0deg);
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.04);
     opacity: 0;
   }
 }

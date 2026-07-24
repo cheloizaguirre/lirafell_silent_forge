@@ -7,8 +7,9 @@ import { useSessionState } from "../state/useSessionState";
 import { puzzles } from "@silent-forge/content";
 import { SceneRenderer } from "../engine/SceneRenderer";
 import { NoiseBang } from "../engine/NoiseBang";
+import { SolveCheer } from "../engine/SolveCheer";
 import { WardenJumpScare } from "../engine/WardenJumpScare";
-import type { NoiseEvent } from "../lib/sessionApi";
+import type { NoiseEvent, SolveEvent } from "../lib/sessionApi";
 import { EliminationPuzzle } from "../engine/puzzles/EliminationPuzzle";
 import { NumericDialPuzzle } from "../engine/puzzles/NumericDialPuzzle";
 import { OrderedSequencePuzzle } from "../engine/puzzles/OrderedSequencePuzzle";
@@ -133,6 +134,10 @@ export function PlayPage() {
             />
             <NoiseBang
               event={sessionState.flags.noiseEvent as NoiseEvent | undefined}
+              selfPlayerId={selfPlayerId}
+            />
+            <SolveCheer
+              event={sessionState.flags.solveEvent as SolveEvent | undefined}
               selfPlayerId={selfPlayerId}
             />
             <WardenJumpScare

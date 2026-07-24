@@ -23,7 +23,19 @@ export interface NoiseEvent {
   bangs?: number;
 }
 
-export type FlagValue = boolean | number | string | NoiseEvent;
+// Stamped into flags by submit_puzzle_attempt whenever a puzzle is solved.
+// The positive counterpart to NoiseEvent: seq is monotonically increasing so
+// clients can tell a genuinely new solve from a reconcile re-fetch replaying
+// old state; `by` is the solver's players.id so each client knows whether the
+// solve was its own; `puzzle` is the solved puzzle id (reserved for future
+// per-puzzle flavor).
+export interface SolveEvent {
+  seq: number;
+  by: string;
+  puzzle: string;
+}
+
+export type FlagValue = boolean | number | string | NoiseEvent | SolveEvent;
 
 export interface SessionStateRow {
   session_id: string;

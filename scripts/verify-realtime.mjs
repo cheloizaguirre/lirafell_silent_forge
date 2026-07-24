@@ -151,15 +151,48 @@ await waitForDm(dm, noiseTile, (t) => /Noise\s*30/.test(t), "DM sees noise rise 
 check("Big BANG burst on the wrong-answer player's own screen", await wrongAnswerBang);
 
 // ---- Player answers CORRECT -> inventory + flag -----------------------------
+// AHA! watcher armed before the click, same as the BANG watchers: the cheer
+// only lives ~1.7s. It rides on .scene-wrap, outside the modal, so the puzzle
+// panel dismissing itself on the correct answer doesn't take the burst with it.
+const gallerySolveCheer = player
+  .waitForSelector(".solve-cheer-big", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
 await player.getByRole("button", { name: "Butler", exact: true }).click();
 await waitForDm(dm, ".objective:has(b:text-is('Inventory'))", (t) => /heart/i.test(t), "DM sees 'heart' added to party inventory");
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("heartFound"), "DM sees 'heartFound' flag set");
+check("Big AHA! cheer on the solver's own screen", await gallerySolveCheer);
 // Feedback: the elimination modal dismisses itself on the correct answer.
 const galleryModalGone = await player
   .waitForSelector(".puzzle-panel", { state: "detached", timeout: 10000 })
   .then(() => true)
   .catch(() => false);
 check("Gallery puzzle auto-closed on the correct answer", galleryModalGone);
+
+// ---- A solved puzzle can't reopen, so it can't cheer twice -----------------
+// This is what actually stops a victory burst for old news: every puzzle
+// hotspot is visibleWhen its grant flag is false, and swaps to a same-labelled
+// "-solved" twin that only narrates flavor (see data/scenes.ts). Clicking the
+// twin must produce the aftermath text, no modal, and no second AHA!.
+// (submit_puzzle_attempt refuses to re-stamp solveEvent too, but that guard is
+// below the UI -- unreachable from a browser once the hotspot is swapped.)
+// Wait out the first cheer's own lifetime first, or we'd just be seeing it.
+await player.waitForSelector(".solve-cheer-big", { state: "detached", timeout: 8000 });
+await player.click('button.hotspot[aria-label="Examine the Automatons"]');
+const solvedFlavor = await player
+  .locator(".log-latest")
+  .filter({ hasText: "The Butler's chest panel stands open" })
+  .waitFor({ timeout: 10000 })
+  .then(() => true)
+  .catch(() => false);
+check("Solved gallery hotspot narrates the aftermath instead of reopening", solvedFlavor);
+const repeatPanel = await player
+  .waitForSelector(".puzzle-panel", { timeout: 2000 })
+  .then(() => true)
+  .catch(() => false);
+check("Solved gallery puzzle cannot be reopened", !repeatPanel);
+check("No repeat AHA! from revisiting a solved puzzle",
+  (await player.locator(".solve-cheer-big").count()) === 0);
 
 // ---- The actual claim: the DM tab never navigated or reloaded ---------------
 check("DM tab took zero navigations/reloads while player acted", dmNavigations === 0, `${dmNavigations} navigation(s)`);
@@ -424,8 +457,31 @@ check("Wrong sigil is quiet: noise still 35", /Noise\s*35/.test(dmNoiseAfterMiss
 // Two clicks: ✦ -> ☾ -> ☉, then lock.
 await aligner.locator(".puzzle-dial").click();
 await aligner.locator(".puzzle-dial").click();
+// Both AHA! watchers armed before the lock -- the one solve in the run with a
+// second *player* parked and watching, so this is what proves the cheer really
+// crosses the wire. The watcher is hands-off here; waitForSelector is passive
+// and fires no framenavigated, so its zero-navigations claim below still holds.
+const lensBigCheer = aligner
+  .waitForSelector(".solve-cheer-big", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
+// Proof shot grabbed the instant the burst appears -- taking it after the
+// awaits below would race the cheer's own 1.7s life and bank an empty frame.
+// Screenshot failures are swallowed on their own so they can't masquerade as
+// a missing cheer.
+const lensSmallCheer = watcher
+  .waitForSelector(".solve-cheer-small", { timeout: 8000 })
+  .then(async () => {
+    await watcher
+      .screenshot({ path: `${OUT}watcher-solve-cheer-small.png`, fullPage: true })
+      .catch(() => {});
+    return true;
+  })
+  .catch(() => false);
 await aligner.getByRole("button", { name: "Lock Alignment" }).click();
 await waitForDm(dm, ".objective:has(b:text-is('Flags'))", (t) => t.includes("aligned"), "DM sees 'aligned' flag set");
+check("Big AHA! on the aligner's own screen", await lensBigCheer);
+check("Small AHA! on the watcher's screen via realtime", await lensSmallCheer);
 // Feedback: locking the alignment closes the modal by itself.
 const lensModalGone = await aligner
   .waitForSelector(".puzzle-panel", { state: "detached", timeout: 10000 })
